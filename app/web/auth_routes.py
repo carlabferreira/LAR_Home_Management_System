@@ -1,0 +1,1 @@
+# GET/POST /login, GET/POST /registro, POST /logout

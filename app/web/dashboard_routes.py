@@ -1,0 +1,1 @@
+# GET /(painel com alertas e totais).

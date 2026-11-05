@@ -1,0 +1,1 @@
+# GET /comodos, GET/POST /comodos/novo, POST /comodos/<id>/remover
