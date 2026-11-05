@@ -1,0 +1,1 @@
+# gerar_lista_compras(user_id) (itens abaixo do mínimo) e marcar_comprado.

@@ -1,0 +1,1 @@
+# criar_comodo, remover_comodo (recusa se ainda tem itens), listar_comodos
