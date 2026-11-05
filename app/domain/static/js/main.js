@@ -1,0 +1,1 @@
+// pequenos comportamentos no navegador (confirmar exclusão, esconder alertas)
