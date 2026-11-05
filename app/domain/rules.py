@@ -9,3 +9,14 @@
 # abaixo_do_minimo(quantidade, minimo)
 # validar_item(dados) (nome obrigatório, quantidade não negativa etc.)
 # proxima_manutencao(ultima, intervalo_meses)
+
+def status_validade(validade, hoje, dias_alerta=7):
+    """Retorna: sem_validade, vencido, vence_em_breve ou ok."""
+    if validade is None:
+        return "sem_validade"
+    dias_restantes = (validade - hoje).days
+    if dias_restantes < 0:
+        return "vencido"
+    if dias_restantes <= dias_alerta:
+        return "vence_em_breve"
+    return "ok"
