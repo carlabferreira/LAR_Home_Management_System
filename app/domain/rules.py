@@ -56,3 +56,31 @@ def status_garantia(data_compra, meses, hoje, dias_alerta=30):
 def proxima_manutencao(ultima, intervalo_meses):
     """Data da próxima manutenção, a partir da última e do intervalo em meses."""
     return adicionar_meses(ultima, intervalo_meses)
+
+# ---------------------------------------------------------------------------
+# Tarefa 2: estoque
+# ---------------------------------------------------------------------------
+def consumir(quantidade_atual, quantidade):
+    """Devolve a nova quantidade após o consumo."""
+    if quantidade <= 0:
+        raise ValidacaoError("A quantidade consumida deve ser maior que zero.")
+    if quantidade > quantidade_atual:
+        raise EstoqueInsuficienteError(
+            f"Estoque insuficiente: há {quantidade_atual:g} e foram pedidos {quantidade:g}."
+        )
+    return round(quantidade_atual - quantidade, 3)
+
+
+def repor(quantidade_atual, quantidade):
+    """Devolve a nova quantidade após a reposição."""
+    if quantidade <= 0:
+        raise ValidacaoError("A quantidade reposta deve ser maior que zero.")
+    return round(quantidade_atual + quantidade, 3)
+
+
+def abaixo_do_minimo(quantidade, estoque_minimo):
+    """Estoque baixo: quantidade menor ou igual ao mínimo definido."""
+    if estoque_minimo is None:
+        return False
+    return quantidade <= estoque_minimo
+
