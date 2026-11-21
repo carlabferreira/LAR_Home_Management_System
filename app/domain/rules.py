@@ -84,3 +84,41 @@ def abaixo_do_minimo(quantidade, estoque_minimo):
         return False
     return quantidade <= estoque_minimo
 
+# ---------------------------------------------------------------------------
+# Tarefa 3: validação de item
+# ---------------------------------------------------------------------------
+def validar_item(dados):
+    """Valida os dados (já convertidos para tipos Python). Lança ValidacaoError."""
+    erros = []
+
+    if not (dados.get("nome") or "").strip():
+        erros.append("O nome é obrigatório.")
+
+    tipo = dados.get("tipo")
+    if tipo not in TIPOS:
+        erros.append("O tipo deve ser consumível ou durável.")
+
+    quantidade = dados.get("quantidade")
+    if quantidade is None:
+        erros.append("A quantidade é obrigatória.")
+    elif quantidade < 0:
+        erros.append("A quantidade não pode ser negativa.")
+
+    if tipo == TIPO_CONSUMIVEL:
+        minimo = dados.get("estoque_minimo")
+        if minimo is not None and minimo < 0:
+            erros.append("O estoque mínimo não pode ser negativo.")
+
+    if tipo == TIPO_DURAVEL:
+        valor = dados.get("valor")
+        if valor is not None and valor < 0:
+            erros.append("O valor não pode ser negativo.")
+        garantia = dados.get("garantia_meses")
+        if garantia is not None and garantia < 0:
+            erros.append("A garantia não pode ser negativa.")
+        if garantia and dados.get("data_compra") is None:
+            erros.append("Informe a data de compra para usar a garantia.")
+
+    if erros:
+        raise ValidacaoError(erros)
+
