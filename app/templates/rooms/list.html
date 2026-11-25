@@ -16,7 +16,8 @@
   {% for comodo in comodos %}
   <li>
     <span>{{ comodo.nome }}</span>
-    <form method="post" action="{{ url_for('rooms.remover', room_id=comodo.id) }}">
+    <form method="post" action="{{ url_for('rooms.remover', room_id=comodo.id) }}"
+          data-confirmar="Remover o cômodo {{ comodo.nome }}?">
       <button type="submit" class="botao-perigo">Remover</button>
     </form>
   </li>
