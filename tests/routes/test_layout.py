@@ -15,9 +15,38 @@ def criar_comodo(client, nome):
     "/static/js/main.js",
     "/static/img/logo_branca.png",
     "/static/img/logo_verde.png",
+    "/static/img/apple-touch-icon.png",
+    "/static/favicon.ico",
 ])
 def test_arquivos_estaticos_sao_servidos(client, caminho):
     assert client.get(caminho).status_code == 200
+
+
+# ---- Layout (base.html) ----
+def test_layout_carrega_css_e_javascript(client):
+    pagina = html(client.get("/comodos"))
+    assert "/static/css/style.css" in pagina
+    assert "/static/js/main.js" in pagina
+
+
+def test_layout_define_favicon(client):
+    assert 'rel="icon" href="/static/favicon.ico"' in html(client.get("/comodos"))
+
+
+def test_layout_mostra_logo_com_texto_alternativo(client):
+    assert 'alt="LAR · Home Management System"' in html(client.get("/comodos"))
+
+
+def test_menu_tem_link_para_comodos(client):
+    assert 'href="/comodos"' in html(client.get("/comodos"))
+
+
+def test_menu_destaca_a_pagina_atual(client):
+    assert 'aria-current="page"' in html(client.get("/comodos"))
+
+
+def test_titulo_da_pagina_inclui_o_nome_do_sistema(client):
+    assert "<title>Cômodos · LAR</title>" in html(client.get("/comodos"))
 
 
 # ---- Mensagens (components/_alert.html) ----
