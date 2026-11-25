@@ -6,14 +6,37 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block titulo %}{% endblock %} · LAR</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" sizes="any">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
 </head>
 <body>
-  <main>
-    {% for categoria, mensagem in get_flashed_messages(with_categories=true) %}
-      <p class="alerta alerta-{{ categoria }}" role="alert">{{ mensagem }}</p>
-    {% endfor %}
+  <header class="topo">
+    <div class="topo-conteudo">
+      <a class="marca" href="{{ url_for('rooms.listar') }}">
+        <img src="{{ url_for('static', filename='img/logo_marca.png') }}"
+             alt="LAR · Home Management System" width="56" height="56">
+      </a>
+      <nav class="menu" aria-label="Menu principal">
+        <ul>
+          <li>
+            <a href="{{ url_for('rooms.listar') }}"
+               {% if request.blueprint == 'rooms' %}class="ativo" aria-current="page"{% endif %}>Cômodos</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="conteudo">
+    {% include "components/_alert.html" %}
 
     {% block conteudo %}{% endblock %}
   </main>
+
+  <footer class="rodape">
+    <p>LAR · Home Management System</p>
+  </footer>
 </body>
 </html>

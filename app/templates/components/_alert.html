@@ -1,2 +1,13 @@
-<!-- pedaços reutilizáveis incluídos com {% include %}, 
-como mensagens de aviso e a linha de um item na tabela. -->
+{# Mensagens da última ação (flash). Categorias usadas: sucesso e erro.
+   Incluído pelo base.html com {% include "components/_alert.html" %}. #}
+{% with mensagens = get_flashed_messages(with_categories=true) %}
+  {% if mensagens %}
+  <div class="alertas">
+    {% for categoria, mensagem in mensagens %}
+    <p class="alerta alerta-{{ categoria }}" role="{{ 'alert' if categoria == 'erro' else 'status' }}">
+      {{ mensagem }}
+    </p>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}

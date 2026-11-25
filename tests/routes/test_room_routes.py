@@ -96,3 +96,8 @@ def test_remover_comodo_inexistente_mostra_erro(client):
 def test_remover_comodo_nao_aceita_get(app, client):
     room_id = cadastrar(app, "Garagem")
     assert client.get(f"/comodos/{room_id}/remover").status_code == 405
+
+
+def test_botao_remover_pede_confirmacao_com_o_nome_do_comodo(app, client):
+    cadastrar(app, "Garagem")
+    assert 'data-confirmar="Remover o cômodo Garagem?"' in html(client.get("/comodos"))

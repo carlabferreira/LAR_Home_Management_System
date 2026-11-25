@@ -5,24 +5,25 @@
 {% block conteudo %}
 <h1>Cômodos</h1>
 
-<form method="post" action="{{ url_for('rooms.criar') }}">
+<form class="formulario-linha" method="post" action="{{ url_for('rooms.criar') }}">
   <label for="nome">Nome do cômodo</label>
   <input id="nome" name="nome" maxlength="80" required>
   <button type="submit">Adicionar</button>
 </form>
 
 {% if comodos %}
-<ul class="comodos">
+<ul class="lista comodos">
   {% for comodo in comodos %}
   <li>
     <span>{{ comodo.nome }}</span>
-    <form method="post" action="{{ url_for('rooms.remover', room_id=comodo.id) }}">
-      <button type="submit">Remover</button>
+    <form method="post" action="{{ url_for('rooms.remover', room_id=comodo.id) }}"
+          data-confirmar="Remover o cômodo {{ comodo.nome }}?">
+      <button type="submit" class="botao-perigo">Remover</button>
     </form>
   </li>
   {% endfor %}
 </ul>
 {% else %}
-<p>Nenhum cômodo cadastrado ainda.</p>
+<p class="vazio">Nenhum cômodo cadastrado ainda.</p>
 {% endif %}
 {% endblock %}
