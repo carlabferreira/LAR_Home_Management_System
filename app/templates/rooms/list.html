@@ -1,1 +1,17 @@
-<!-- tabela com filtros -->
+{% extends "base.html" %}
+
+{% block titulo %}Cômodos{% endblock %}
+
+{% block conteudo %}
+<h1>Cômodos</h1>
+
+{% if comodos %}
+<ul class="comodos">
+  {% for comodo in comodos %}
+  <li>{{ comodo.nome }}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>Nenhum cômodo cadastrado ainda.</p>
+{% endif %}
+{% endblock %}
