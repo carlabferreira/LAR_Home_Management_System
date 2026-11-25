@@ -18,3 +18,8 @@ def criar_comodo(nome):
     if repositories.get_room_by_nome(nome) is not None:
         raise ValidacaoError(f"Já existe um cômodo com o nome {nome}.")
     return repositories.add_room(Room(nome=nome))
+
+
+def listar_comodos():
+    """Todos os cômodos, em ordem alfabética."""
+    return repositories.list_rooms()

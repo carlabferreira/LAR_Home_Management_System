@@ -41,3 +41,14 @@ def test_criar_comodo_repetido_com_espacos_tambem_e_recusado(contexto):
     room_service.criar_comodo("Cozinha")
     with pytest.raises(ValidacaoError):
         room_service.criar_comodo(" Cozinha ")
+
+
+# ---- listar_comodos ----
+def test_listar_comodos_sem_cadastro_devolve_lista_vazia(contexto):
+    assert room_service.listar_comodos() == []
+
+
+def test_listar_comodos_vem_em_ordem_alfabetica(contexto):
+    room_service.criar_comodo("Sala")
+    room_service.criar_comodo("Banheiro")
+    assert [c.nome for c in room_service.listar_comodos()] == ["Banheiro", "Sala"]
