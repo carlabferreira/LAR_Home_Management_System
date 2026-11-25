@@ -15,11 +15,17 @@ def criar_comodo(client, nome):
     "/static/js/main.js",
     "/static/img/logo_branca.png",
     "/static/img/logo_verde.png",
+    "/static/img/logo_marca.png",
     "/static/img/apple-touch-icon.png",
     "/static/favicon.ico",
 ])
 def test_arquivos_estaticos_sao_servidos(client, caminho):
     assert client.get(caminho).status_code == 200
+
+
+@pytest.mark.parametrize("classe", ["alerta-sucesso", "alerta-erro", "botao-perigo"])
+def test_css_define_as_classes_usadas_nos_templates(client, classe):
+    assert f".{classe}" in client.get("/static/css/style.css").get_data(as_text=True)
 
 
 # ---- Layout (base.html) ----

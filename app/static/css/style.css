@@ -1,1 +1,273 @@
-/* estilos da página */
+/* Estilos do LAR. Cores tiradas da logo (app/static/img/logo_*.png). */
+
+:root {
+  --verde-logo: #98be66;     /* fundo da logo verde, usado no cabeçalho */
+  --verde-l: #00bf63;        /* "L" da logo */
+  --verde-telhado: #7ed957;  /* telhado da logo */
+  --verde-r: #c1ff72;        /* "R" da logo */
+  --verde-escuro: #2e6b1f;   /* botões e links: contraste suficiente com branco */
+  --verde-texto: #1f3b12;    /* texto sobre o verde da logo */
+  --vermelho: #b3261e;
+  --amarelo: #8a5a00;
+
+  --texto: #1d1d1b;
+  --texto-suave: #5c5c57;
+  --fundo: #f6f8f2;
+  --superficie: #ffffff;
+  --borda: #dde3d3;
+
+  --raio: 8px;
+  --sombra: 0 1px 3px rgb(0 0 0 / 0.08);
+  --fonte: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--fonte);
+  line-height: 1.5;
+  color: var(--texto);
+  background: var(--fundo);
+}
+
+h1 {
+  margin: 0 0 1rem;
+  font-size: 1.75rem;
+}
+
+a {
+  color: var(--verde-escuro);
+}
+
+:focus-visible {
+  outline: 3px solid var(--verde-l);
+  outline-offset: 2px;
+}
+
+/* ---- Cabeçalho e menu ---- */
+.topo {
+  background: var(--verde-logo);
+  border-bottom: 4px solid var(--verde-telhado);
+}
+
+.topo-conteudo {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0.25rem 1rem;
+}
+
+.marca img {
+  display: block;
+}
+
+.menu ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.menu a {
+  display: block;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--raio);
+  font-weight: 600;
+  color: var(--verde-texto);
+  text-decoration: none;
+}
+
+.menu a:hover {
+  background: rgb(255 255 255 / 0.3);
+}
+
+.menu a.ativo {
+  background: var(--superficie);
+}
+
+/* ---- Conteúdo e rodapé ---- */
+.conteudo {
+  flex: 1;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.rodape {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--texto-suave);
+  border-top: 1px solid var(--borda);
+}
+
+.rodape p {
+  margin: 0;
+}
+
+/* ---- Mensagens (components/_alert.html) ---- */
+.alertas {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.alerta {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-left: 5px solid;
+  border-radius: var(--raio);
+}
+
+.alerta-sucesso {
+  color: #1f4d12;
+  background: #eaf6dc;
+  border-color: var(--verde-telhado);
+}
+
+.alerta-erro {
+  color: #7a1712;
+  background: #fdecea;
+  border-color: var(--vermelho);
+}
+
+/* ---- Formulários e botões ---- */
+label {
+  font-weight: 600;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--superficie);
+}
+
+button,
+.botao {
+  font: inherit;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border: 0;
+  border-radius: var(--raio);
+  color: #ffffff;
+  background: var(--verde-escuro);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+button:hover,
+.botao:hover {
+  filter: brightness(1.15);
+}
+
+.botao-perigo {
+  color: var(--vermelho);
+  background: transparent;
+  border: 1px solid currentColor;
+}
+
+.botao-perigo:hover {
+  color: #ffffff;
+  background: var(--vermelho);
+  filter: none;
+}
+
+.formulario-linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.formulario-linha input {
+  flex: 1 1 14rem;
+}
+
+/* ---- Listas em cartões (ex.: cômodos) ---- */
+.lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--superficie);
+  box-shadow: var(--sombra);
+}
+
+.lista li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+}
+
+.lista li + li {
+  border-top: 1px solid var(--borda);
+}
+
+.lista form {
+  margin: 0;
+}
+
+.vazio {
+  color: var(--texto-suave);
+}
+
+/* ---- Etiquetas de status (filtro classe_status: ok, aviso, perigo) ---- */
+.etiqueta {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.etiqueta.ok {
+  color: #1f4d12;
+  background: #eaf6dc;
+}
+
+.etiqueta.aviso {
+  color: var(--amarelo);
+  background: #fff4d6;
+}
+
+.etiqueta.perigo {
+  color: #7a1712;
+  background: #fdecea;
+}
+
+/* ---- Telas pequenas ---- */
+@media (max-width: 600px) {
+  .topo-conteudo {
+    gap: 0.75rem;
+  }
+
+  .marca img {
+    width: 44px;
+    height: 44px;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+  }
+}
