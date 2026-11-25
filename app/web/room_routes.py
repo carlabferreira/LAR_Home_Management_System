@@ -27,3 +27,14 @@ def criar():
     else:
         flash(f"Cômodo {comodo.nome} criado.", "sucesso")
     return redirect(url_for("rooms.listar"))
+
+
+@room_bp.post("/<int:room_id>/remover")
+def remover(room_id):
+    try:
+        comodo = room_service.remover_comodo(room_id)
+    except DominioError as erro:
+        _avisar_erro(erro)
+    else:
+        flash(f"Cômodo {comodo.nome} removido.", "sucesso")
+    return redirect(url_for("rooms.listar"))

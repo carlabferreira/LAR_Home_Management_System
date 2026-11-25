@@ -14,7 +14,12 @@
 {% if comodos %}
 <ul class="comodos">
   {% for comodo in comodos %}
-  <li>{{ comodo.nome }}</li>
+  <li>
+    <span>{{ comodo.nome }}</span>
+    <form method="post" action="{{ url_for('rooms.remover', room_id=comodo.id) }}">
+      <button type="submit">Remover</button>
+    </form>
+  </li>
   {% endfor %}
 </ul>
 {% else %}

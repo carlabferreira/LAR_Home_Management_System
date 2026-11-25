@@ -1,5 +1,5 @@
 from app import repositories
-from app.models import Room
+from app.models import Item, Room
 
 
 def html(resposta):
@@ -63,3 +63,36 @@ def test_criar_comodo_repetido_mostra_erro(app, client):
 def test_mensagem_aparece_so_uma_vez(client):
     criar(client, "Cozinha")
     assert "criado" not in html(client.get("/comodos"))
+
+
+# ---- POST /comodos/<id>/remover ----
+def remover(client, room_id):
+    return client.post(f"/comodos/{room_id}/remover", follow_redirects=True)
+
+
+def test_remover_comodo_vazio_mostra_mensagem_de_sucesso(app, client):
+    room_id = cadastrar(app, "Garagem")
+    assert "Cômodo Garagem removido." in html(remover(client, room_id))
+
+
+def test_remover_comodo_vazio_tira_da_listagem(app, client):
+    room_id = cadastrar(app, "Garagem")
+    remover(client, room_id)
+    assert "Nenhum cômodo cadastrado" in html(client.get("/comodos"))
+
+
+def test_remover_comodo_com_itens_mostra_erro_e_mantem_o_comodo(app, client):
+    room_id = cadastrar(app, "Cozinha")
+    with app.app_context():
+        repositories.add_item(Item(nome="Arroz", tipo="consumivel", room_id=room_id))
+    assert "ainda tem 1 item" in html(remover(client, room_id))
+    assert "Cozinha" in html(client.get("/comodos"))
+
+
+def test_remover_comodo_inexistente_mostra_erro(client):
+    assert "Cômodo não encontrado." in html(remover(client, 999))
+
+
+def test_remover_comodo_nao_aceita_get(app, client):
+    room_id = cadastrar(app, "Garagem")
+    assert client.get(f"/comodos/{room_id}/remover").status_code == 405
