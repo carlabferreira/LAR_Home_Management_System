@@ -1,6 +1,7 @@
 import pytest
 
 from app import repositories
+from app.extensions import db
 from app.models import Item, Room
 
 
@@ -127,3 +128,11 @@ def test_list_items_combina_filtros(contexto):
         i.nome for i in repositories.list_items(tipo="duravel", room_id=cozinha.id)
     ]
     assert nomes == ["Fogão"]
+
+
+def test_save_persiste_alteracoes_em_objeto_carregado(contexto):
+    item = novo_item(quantidade=5.0)
+    item.quantidade = 3.0
+    repositories.save()
+    db.session.expire_all()
+    assert repositories.get_item(item.id).quantidade == 3.0

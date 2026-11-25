@@ -61,6 +61,11 @@ def list_items(tipo=None, room_id=None, busca=None):
     return db.session.execute(consulta).scalars().all()
 
 
+def save():
+    """Confirma alterações feitas em objetos já carregados (ex.: item.quantidade = 3)."""
+    db.session.commit()
+
+
 def delete_item(item):
     db.session.delete(item)
     db.session.commit()
