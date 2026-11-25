@@ -261,6 +261,25 @@ button:hover,
   background: #fdecea;
 }
 
+/* ---- Páginas de erro (404.html) ---- */
+.erro-pagina {
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.erro-codigo {
+  margin: 0;
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--verde-logo);
+}
+
+.erro-pagina .botao {
+  display: inline-block;
+  margin-top: 1rem;
+}
+
 /* ---- Quem prefere menos animação ---- */
 @media (prefers-reduced-motion: reduce) {
   .alerta {

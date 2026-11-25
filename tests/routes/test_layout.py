@@ -70,3 +70,22 @@ def test_mensagem_de_erro_e_anunciada_como_alerta(client):
 
 def test_pagina_sem_mensagens_nao_mostra_area_de_alertas(client):
     assert 'class="alertas"' not in html(client.get("/comodos"))
+
+
+# ---- Página 404 ----
+def test_endereco_inexistente_responde_404(client):
+    assert client.get("/endereco-que-nao-existe").status_code == 404
+
+
+def test_pagina_404_explica_o_problema(client):
+    assert "Página não encontrada" in html(client.get("/endereco-que-nao-existe"))
+
+
+def test_pagina_404_usa_o_layout_do_sistema(client):
+    pagina = html(client.get("/endereco-que-nao-existe"))
+    assert "/static/css/style.css" in pagina
+    assert 'aria-label="Menu principal"' in pagina
+
+
+def test_pagina_404_tem_link_para_voltar(client):
+    assert 'class="botao" href="/comodos"' in html(client.get("/endereco-que-nao-existe"))
