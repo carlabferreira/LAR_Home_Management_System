@@ -47,6 +47,20 @@ def test_delete_room_remove_o_comodo(contexto):
     assert repositories.get_room(comodo.id) is None
 
 
+def test_count_items_in_room_conta_so_os_itens_do_comodo(contexto):
+    cozinha = repositories.add_room(Room(nome="Cozinha"))
+    sala = repositories.add_room(Room(nome="Sala"))
+    novo_item("Arroz", room_id=cozinha.id)
+    novo_item("Feijão", room_id=cozinha.id)
+    novo_item("Sofá", "duravel", room_id=sala.id)
+    assert repositories.count_items_in_room(cozinha.id) == 2
+
+
+def test_count_items_in_room_sem_itens_devolve_zero(contexto):
+    comodo = repositories.add_room(Room(nome="Garagem"))
+    assert repositories.count_items_in_room(comodo.id) == 0
+
+
 # ---- Itens ----
 def test_add_item_devolve_o_item_com_id(contexto):
     assert novo_item().id is not None

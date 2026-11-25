@@ -33,6 +33,11 @@ def delete_room(room):
     db.session.commit()
 
 
+def count_items_in_room(room_id):
+    consulta = db.select(db.func.count(Item.id)).where(Item.room_id == room_id)
+    return db.session.execute(consulta).scalar_one()
+
+
 # ---- Itens ----
 def add_item(item):
     db.session.add(item)
