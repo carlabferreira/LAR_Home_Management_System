@@ -4,6 +4,7 @@ from flask import Flask
 from . import models  # noqa: F401  (registra as tabelas para o create_all)
 from .config import DevConfig
 from .extensions import db
+from .web.room_routes import room_bp
 
 
 def create_app(config_object=None):
@@ -13,6 +14,7 @@ def create_app(config_object=None):
     db.init_app(app)
 
     # As rotas e os filtros do Jinja serão registrados aqui pelas tarefas da camada web.
+    app.register_blueprint(room_bp)
 
     with app.app_context():
         db.create_all()

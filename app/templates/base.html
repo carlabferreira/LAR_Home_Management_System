@@ -1,2 +1,19 @@
-<!-- layout comum (cabeçalho, menu, rodapé, área de mensagens). 
-Todas as outras páginas fazem {% extends "base.html" %}. -->
+{# Layout comum (cabeçalho, menu, rodapé, área de mensagens).
+   Todas as outras páginas fazem {% extends "base.html" %}. #}
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}{% endblock %} · LAR</title>
+</head>
+<body>
+  <main>
+    {% for categoria, mensagem in get_flashed_messages(with_categories=true) %}
+      <p class="alerta alerta-{{ categoria }}" role="alert">{{ mensagem }}</p>
+    {% endfor %}
+
+    {% block conteudo %}{% endblock %}
+  </main>
+</body>
+</html>
