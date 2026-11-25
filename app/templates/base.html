@@ -9,9 +9,7 @@
 </head>
 <body>
   <main>
-    {% for categoria, mensagem in get_flashed_messages(with_categories=true) %}
-      <p class="alerta alerta-{{ categoria }}" role="alert">{{ mensagem }}</p>
-    {% endfor %}
+    {% include "components/_alert.html" %}
 
     {% block conteudo %}{% endblock %}
   </main>
