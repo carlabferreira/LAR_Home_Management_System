@@ -79,3 +79,51 @@ def test_delete_item_remove_o_item(contexto):
     item = novo_item()
     repositories.delete_item(item)
     assert repositories.get_item(item.id) is None
+
+
+def test_list_items_sem_filtro_vem_em_ordem_de_nome(contexto):
+    novo_item("Feijão")
+    novo_item("Arroz")
+    assert [i.nome for i in repositories.list_items()] == ["Arroz", "Feijão"]
+
+
+def test_list_items_filtra_por_tipo(contexto):
+    novo_item("Arroz")
+    novo_item("Geladeira", "duravel")
+    assert [i.nome for i in repositories.list_items(tipo="duravel")] == ["Geladeira"]
+
+
+def test_list_items_filtra_por_comodo(contexto):
+    cozinha = repositories.add_room(Room(nome="Cozinha"))
+    novo_item("Arroz", room_id=cozinha.id)
+    novo_item("Sofá", "duravel")
+    assert [i.nome for i in repositories.list_items(room_id=cozinha.id)] == ["Arroz"]
+
+
+def test_list_items_busca_ignorando_maiusculas(contexto):
+    novo_item("Arroz integral")
+    novo_item("Feijão")
+    assert [i.nome for i in repositories.list_items(busca="ARROZ")] == [
+        "Arroz integral"
+    ]
+
+
+def test_list_items_busca_encontra_parte_do_nome(contexto):
+    novo_item("Detergente")
+    assert [i.nome for i in repositories.list_items(busca="terg")] == ["Detergente"]
+
+
+def test_list_items_busca_sem_resultado_devolve_lista_vazia(contexto):
+    novo_item("Arroz")
+    assert repositories.list_items(busca="inexistente") == []
+
+
+def test_list_items_combina_filtros(contexto):
+    cozinha = repositories.add_room(Room(nome="Cozinha"))
+    novo_item("Arroz", room_id=cozinha.id)
+    novo_item("Fogão", "duravel", room_id=cozinha.id)
+    novo_item("Sofá", "duravel")
+    nomes = [
+        i.nome for i in repositories.list_items(tipo="duravel", room_id=cozinha.id)
+    ]
+    assert nomes == ["Fogão"]
