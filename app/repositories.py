@@ -31,3 +31,31 @@ def list_rooms():
 def delete_room(room):
     db.session.delete(room)
     db.session.commit()
+
+
+# ---- Itens ----
+def add_item(item):
+    db.session.add(item)
+    db.session.commit()
+    return item
+
+
+def get_item(item_id):
+    return db.session.get(Item, item_id)
+
+
+def list_items(tipo=None, room_id=None, busca=None):
+    """Lista itens por ordem de nome, aplicando só os filtros informados."""
+    consulta = db.select(Item).order_by(Item.nome)
+    if tipo:
+        consulta = consulta.where(Item.tipo == tipo)
+    if room_id:
+        consulta = consulta.where(Item.room_id == room_id)
+    if busca:
+        consulta = consulta.where(Item.nome.ilike(f"%{busca}%"))
+    return db.session.execute(consulta).scalars().all()
+
+
+def delete_item(item):
+    db.session.delete(item)
+    db.session.commit()
