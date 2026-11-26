@@ -55,6 +55,14 @@ def obter_item(item_id):
     return item
 
 
+def editar_item(item_id, dados):
+    item = obter_item(item_id)
+    for campo, valor in _preparar_dados(dados).items():
+        setattr(item, campo, valor)
+    repositories.save()
+    return item
+
+
 def _fim_garantia(data_compra, meses):
     ano, mes = divmod(data_compra.year * 12 + data_compra.month - 1 + meses, 12)
 

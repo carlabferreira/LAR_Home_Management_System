@@ -293,3 +293,48 @@ def test_obter_item_devolve_o_item_cadastrado(contexto):
 def test_obter_item_inexistente_lanca_erro(contexto):
     with pytest.raises(NaoEncontradoError, match="Item não encontrado."):
         item_service.obter_item(999)
+
+
+def test_editar_item_altera_os_campos_e_grava(contexto):
+    item = item_service.criar_item(consumivel())
+    item_service.editar_item(item.id, consumivel(nome="Arroz integral", quantidade=5.0))
+    salvo = repositories.get_item(item.id)
+    assert salvo.nome == "Arroz integral"
+    assert salvo.quantidade == 5.0
+
+
+def test_editar_item_devolve_o_item_alterado(contexto):
+    item = item_service.criar_item(consumivel())
+    editado = item_service.editar_item(item.id, consumivel(nome="Feijão"))
+    assert editado.id == item.id
+    assert editado.nome == "Feijão"
+
+
+def test_editar_item_pode_mudar_o_comodo(contexto):
+    comodo = repositories.add_room(Room(nome="Despensa"))
+    item = item_service.criar_item(consumivel())
+    item_service.editar_item(item.id, consumivel(room_id=comodo.id))
+    assert repositories.get_item(item.id).room.nome == "Despensa"
+
+
+def test_editar_item_mudando_tipo_descarta_campos_do_tipo_antigo(contexto):
+    item = item_service.criar_item(consumivel(unidade="kg", validade=date(2027, 1, 1)))
+    item_service.editar_item(item.id, duravel(valor=200.0))
+    salvo = repositories.get_item(item.id)
+    assert salvo.tipo == "duravel"
+    assert (salvo.unidade, salvo.validade) == (None, None)
+    assert salvo.valor == 200.0
+
+
+def test_editar_item_invalido_lanca_erro_e_mantem_os_dados(contexto):
+    item = item_service.criar_item(consumivel())
+    with pytest.raises(ValidacaoError, match="nome é obrigatório"):
+        item_service.editar_item(item.id, consumivel(nome="", quantidade=9.0))
+    salvo = repositories.get_item(item.id)
+    assert salvo.nome == "Arroz"
+    assert salvo.quantidade == 2.0
+
+
+def test_editar_item_inexistente_lanca_erro(contexto):
+    with pytest.raises(NaoEncontradoError, match="Item não encontrado."):
+        item_service.editar_item(999, consumivel())
