@@ -209,3 +209,44 @@ def test_resumo_garantia_considera_fim_do_mes(monkeypatch):
     )
 
     assert resumo["garantias_vencendo"] == [item]
+
+def test_resumo_soma_valor_dos_bens_duraveis(gerar_resumo):
+    itens = [
+        Item(
+            nome="Mesa",
+            tipo="duravel",
+            quantidade=1,
+            valor=500
+        ),
+        Item(
+            nome="Cadeira",
+            tipo="duravel",
+            quantidade=4,
+            valor=100
+        )
+    ]
+
+    resumo = gerar_resumo(itens)
+
+    assert resumo["valor_total_duraveis"] == 900
+
+
+def test_resumo_nao_soma_valor_de_consumiveis(gerar_resumo):
+    item = Item(
+        nome="Arroz",
+        tipo="consumivel",
+        quantidade=2,
+        valor=30
+    )
+
+    assert gerar_resumo([item])["valor_total_duraveis"] == 0
+
+
+def test_resumo_ignora_duravel_sem_valor(gerar_resumo):
+    item = Item(
+        nome="Estante",
+        tipo="duravel",
+        quantidade=1
+    )
+
+    assert gerar_resumo([item])["valor_total_duraveis"] == 0

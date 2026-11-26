@@ -63,6 +63,12 @@ def resumo_alertas(dias_validade, dias_garantia, hoje=None):
         elif item.tipo == "duravel":
             resumo["total_duraveis"] += 1
 
+            if item.valor is not None:
+                resumo["valor_total_duraveis"] += (
+                    Decimal(str(item.valor))
+                    * Decimal(str(item.quantidade))
+                )
+
             if (
                 item.data_compra is not None
                 and item.garantia_meses is not None
