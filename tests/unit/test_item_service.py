@@ -411,3 +411,140 @@ def test_repor_item_duravel_lanca_erro_e_mantem_quantidade(contexto):
 def test_repor_item_inexistente_lanca_erro(contexto):
     with pytest.raises(NaoEncontradoError):
         item_service.repor_item(999, 1)
+
+
+def listar(**filtros):
+    return item_service.listar_itens(hoje=HOJE, **filtros)
+
+
+def nomes(linhas):
+    return [linha["item"].nome for linha in linhas]
+
+
+def test_listar_itens_sem_cadastro_devolve_lista_vazia(contexto):
+    assert listar() == []
+
+
+def test_listar_itens_vem_em_ordem_alfabetica(contexto):
+    item_service.criar_item(consumivel(nome="Sabão"))
+    item_service.criar_item(consumivel(nome="Arroz"))
+    assert nomes(listar()) == ["Arroz", "Sabão"]
+
+
+def test_listar_itens_devolve_o_item_com_os_status(contexto):
+    item = item_service.criar_item(consumivel())
+    assert listar() == [{
+        "item": item,
+        "validade": "sem_validade",
+        "garantia": "sem_garantia",
+        "estoque_baixo": False,
+    }]
+
+
+@pytest.mark.parametrize("dias, esperado", [
+    (-1, "vencido"),
+    (0, "vence_em_breve"),
+    (7, "vence_em_breve"),
+    (8, "ok"),
+])
+def test_listar_itens_calcula_status_de_validade(contexto, dias, esperado):
+    item_service.criar_item(consumivel(validade=HOJE + timedelta(days=dias)))
+    assert listar()[0]["validade"] == esperado
+
+
+def test_listar_itens_usa_o_prazo_de_validade_informado(contexto):
+    item_service.criar_item(consumivel(validade=HOJE + timedelta(days=5)))
+    assert item_service.listar_itens(hoje=HOJE, dias_validade=3)[0]["validade"] == "ok"
+
+
+@pytest.mark.parametrize("data_compra, esperado", [
+    (date(2025, 11, 24), "vencida"),
+    (date(2025, 12, 10), "vencendo"),
+    (date(2026, 10, 25), "em_garantia"),
+])
+def test_listar_itens_calcula_status_de_garantia(contexto, data_compra, esperado):
+    item_service.criar_item(duravel(data_compra=data_compra, garantia_meses=12))
+    assert listar()[0]["garantia"] == esperado
+
+
+def test_listar_itens_usa_o_prazo_de_garantia_informado(contexto):
+    item_service.criar_item(duravel(data_compra=date(2025, 12, 10), garantia_meses=12))
+    linhas = item_service.listar_itens(hoje=HOJE, dias_garantia=7)
+    assert linhas[0]["garantia"] == "em_garantia"
+
+
+@pytest.mark.parametrize("quantidade, esperado", [(1.0, True), (2.0, True), (3.0, False)])
+def test_listar_itens_marca_estoque_baixo(contexto, quantidade, esperado):
+    item_service.criar_item(consumivel(quantidade=quantidade, estoque_minimo=2.0))
+    assert listar()[0]["estoque_baixo"] is esperado
+
+
+def test_listar_itens_filtra_por_tipo(contexto):
+    item_service.criar_item(consumivel())
+    item_service.criar_item(duravel())
+    assert nomes(listar(tipo="duravel")) == ["Geladeira"]
+
+
+def test_listar_itens_filtra_por_comodo(contexto):
+    cozinha = repositories.add_room(Room(nome="Cozinha"))
+    item_service.criar_item(consumivel(room_id=cozinha.id))
+    item_service.criar_item(duravel())
+    assert nomes(listar(room_id=cozinha.id)) == ["Arroz"]
+
+
+def test_listar_itens_busca_parte_do_nome_sem_diferenciar_maiusculas(contexto):
+    item_service.criar_item(consumivel(nome="Arroz integral"))
+    item_service.criar_item(consumivel(nome="Feijão"))
+    assert nomes(listar(busca="INTEGRAL")) == ["Arroz integral"]
+
+
+@pytest.mark.parametrize("busca", ["", "   ", None])
+def test_listar_itens_busca_vazia_nao_filtra(contexto, busca):
+    item_service.criar_item(consumivel())
+    assert nomes(listar(busca=busca)) == ["Arroz"]
+
+
+def test_listar_itens_busca_ignora_espacos_nas_pontas(contexto):
+    item_service.criar_item(consumivel())
+    assert nomes(listar(busca="  arr  ")) == ["Arroz"]
+
+
+@pytest.fixture
+def itens_com_situacoes(contexto):
+    item_service.criar_item(consumivel(nome="Leite", validade=HOJE - timedelta(days=1)))
+    item_service.criar_item(consumivel(nome="Iogurte", validade=HOJE + timedelta(days=3)))
+    item_service.criar_item(consumivel(nome="Sabão", quantidade=1.0, estoque_minimo=2.0))
+    item_service.criar_item(duravel(
+        nome="Geladeira", data_compra=date(2025, 11, 24), garantia_meses=12,
+    ))
+    item_service.criar_item(duravel(
+        nome="TV", data_compra=date(2025, 12, 10), garantia_meses=12,
+    ))
+    item_service.criar_item(consumivel(nome="Arroz"))
+
+
+@pytest.mark.parametrize("situacao, esperado", [
+    ("vencido", ["Leite"]),
+    ("vence_em_breve", ["Iogurte"]),
+    ("estoque_baixo", ["Sabão"]),
+    ("garantia_vencida", ["Geladeira"]),
+    ("garantia_vencendo", ["TV"]),
+])
+def test_listar_itens_filtra_por_situacao(itens_com_situacoes, situacao, esperado):
+    assert nomes(listar(situacao=situacao)) == esperado
+
+
+@pytest.mark.parametrize("situacao", [None, "", "desconhecida"])
+def test_listar_itens_situacao_vazia_ou_desconhecida_nao_filtra(
+    itens_com_situacoes, situacao
+):
+    assert len(listar(situacao=situacao)) == 6
+
+
+def test_listar_itens_combina_filtros(contexto):
+    cozinha = repositories.add_room(Room(nome="Cozinha"))
+    vencido = HOJE - timedelta(days=1)
+    item_service.criar_item(consumivel(nome="Leite", room_id=cozinha.id, validade=vencido))
+    item_service.criar_item(consumivel(nome="Leite em pó", validade=vencido))
+    item_service.criar_item(consumivel(nome="Leite condensado", room_id=cozinha.id))
+    assert nomes(listar(room_id=cozinha.id, busca="leite", situacao="vencido")) == ["Leite"]

@@ -92,6 +92,46 @@ def repor_item(item_id, quantidade):
     return item
 
 
+SITUACOES = {
+    "vencido": lambda linha: linha["validade"] == "vencido",
+    "vence_em_breve": lambda linha: linha["validade"] == "vence_em_breve",
+    "garantia_vencida": lambda linha: linha["garantia"] == "vencida",
+    "garantia_vencendo": lambda linha: linha["garantia"] == "vencendo",
+    "estoque_baixo": lambda linha: linha["estoque_baixo"],
+}
+
+
+def _com_status(item, hoje, dias_validade, dias_garantia):
+    return {
+        "item": item,
+        "validade": rules.status_validade(item.validade, hoje, dias_validade),
+        "garantia": rules.status_garantia(
+            item.data_compra, item.garantia_meses, hoje, dias_garantia
+        ),
+        "estoque_baixo": rules.abaixo_do_minimo(item.quantidade, item.estoque_minimo),
+    }
+
+
+def listar_itens(
+    tipo=None,
+    room_id=None,
+    busca=None,
+    situacao=None,
+    hoje=None,
+    dias_validade=7,
+    dias_garantia=30,
+):
+    hoje = hoje if hoje is not None else date.today()
+    busca = (busca or "").strip() or None
+    itens = repositories.list_items(tipo=tipo, room_id=room_id, busca=busca)
+    linhas = [_com_status(item, hoje, dias_validade, dias_garantia) for item in itens]
+
+    filtro = SITUACOES.get(situacao)
+    if filtro:
+        linhas = [linha for linha in linhas if filtro(linha)]
+    return linhas
+
+
 def _fim_garantia(data_compra, meses):
     ano, mes = divmod(data_compra.year * 12 + data_compra.month - 1 + meses, 12)
 
