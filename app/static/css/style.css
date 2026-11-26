@@ -206,6 +206,71 @@ button:hover,
   flex: 1 1 14rem;
 }
 
+.cabecalho-pagina {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.cabecalho-pagina h1 {
+  margin: 0;
+}
+
+/* ---- Formulário de item ---- */
+.formulario {
+  display: grid;
+  gap: 1rem;
+  max-width: 40rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+legend {
+  font-weight: 600;
+}
+
+.opcao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-right: 1.25rem;
+  font-weight: 400;
+}
+
+.grupo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--superficie);
+}
+
+.grupo legend {
+  padding: 0 0.25rem;
+  color: var(--texto-suave);
+}
+
+.acoes {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 /* ---- Listas em cartões (ex.: cômodos) ---- */
 .lista {
   margin: 0;

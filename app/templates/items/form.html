@@ -1,1 +1,93 @@
-<!-- reutilizado para criar e editar -->
+{# Formulário de item, reutilizado para criar e editar.
+   Recebe: titulo, acao (URL do POST), valores (texto de cada campo) e comodos. #}
+{% extends "base.html" %}
+
+{% block titulo %}{{ titulo }}{% endblock %}
+
+{% block conteudo %}
+<h1>{{ titulo }}</h1>
+
+<form class="formulario" method="post" action="{{ acao }}">
+  <div class="campo">
+    <label for="nome">Nome</label>
+    <input id="nome" name="nome" maxlength="120" required value="{{ valores.get('nome', '') }}">
+  </div>
+
+  <fieldset class="campo">
+    <legend>Tipo</legend>
+    <label class="opcao">
+      <input type="radio" name="tipo" value="consumivel"
+             {% if valores.get('tipo') == 'consumivel' %}checked{% endif %}>
+      Consumível
+    </label>
+    <label class="opcao">
+      <input type="radio" name="tipo" value="duravel"
+             {% if valores.get('tipo') == 'duravel' %}checked{% endif %}>
+      Durável
+    </label>
+  </fieldset>
+
+  <div class="campo">
+    <label for="categoria">Categoria</label>
+    <input id="categoria" name="categoria" maxlength="60" value="{{ valores.get('categoria', '') }}">
+  </div>
+
+  <div class="campo">
+    <label for="room_id">Cômodo</label>
+    <select id="room_id" name="room_id">
+      <option value="">Sem cômodo</option>
+      {% for comodo in comodos %}
+      <option value="{{ comodo.id }}"
+              {% if valores.get('room_id') == comodo.id|string %}selected{% endif %}>{{ comodo.nome }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="campo">
+    <label for="quantidade">Quantidade</label>
+    <input id="quantidade" name="quantidade" type="number" step="any" min="0" required
+           value="{{ valores.get('quantidade', '') }}">
+  </div>
+
+  <fieldset class="grupo">
+    <legend>Só para consumíveis</legend>
+    <div class="campo">
+      <label for="unidade">Unidade</label>
+      <input id="unidade" name="unidade" maxlength="20" placeholder="kg, un, L…"
+             value="{{ valores.get('unidade', '') }}">
+    </div>
+    <div class="campo">
+      <label for="estoque_minimo">Estoque mínimo</label>
+      <input id="estoque_minimo" name="estoque_minimo" type="number" step="any" min="0"
+             value="{{ valores.get('estoque_minimo', '') }}">
+    </div>
+    <div class="campo">
+      <label for="validade">Validade</label>
+      <input id="validade" name="validade" type="date" value="{{ valores.get('validade', '') }}">
+    </div>
+  </fieldset>
+
+  <fieldset class="grupo">
+    <legend>Só para bens duráveis</legend>
+    <div class="campo">
+      <label for="data_compra">Data de compra</label>
+      <input id="data_compra" name="data_compra" type="date" value="{{ valores.get('data_compra', '') }}">
+    </div>
+    <div class="campo">
+      <label for="valor">Valor (R$)</label>
+      <input id="valor" name="valor" type="number" step="0.01" min="0"
+             value="{{ valores.get('valor', '') }}">
+    </div>
+    <div class="campo">
+      <label for="garantia_meses">Garantia (meses)</label>
+      <input id="garantia_meses" name="garantia_meses" type="number" step="1" min="0"
+             value="{{ valores.get('garantia_meses', '') }}">
+    </div>
+  </fieldset>
+
+  <div class="acoes">
+    <button type="submit">Salvar</button>
+    <a href="{{ url_for('items.listar') }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

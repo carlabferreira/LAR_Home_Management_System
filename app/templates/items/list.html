@@ -3,7 +3,10 @@
 {% block titulo %}Itens{% endblock %}
 
 {% block conteudo %}
-<h1>Itens</h1>
+<div class="cabecalho-pagina">
+  <h1>Itens</h1>
+  <a class="botao" href="{{ url_for('items.novo') }}">Novo item</a>
+</div>
 
 {% if linhas %}
 <table class="tabela">
