@@ -1,8 +1,10 @@
-"""Converte dados de formulário (texto) em tipos Python para os serviços."""
+"""Converte o texto dos formulários em tipos Python, e vice-versa."""
+
 import math
 from datetime import date
 
 from ..domain.errors import ValidacaoError
+from ..models import CAMPOS_ITEM
 
 
 def _texto(valor):
@@ -51,11 +53,27 @@ def dados_item_do_formulario(form):
         "validade": _data(form.get("validade"), "Validade", erros),
         "data_compra": _data(form.get("data_compra"), "Data de compra", erros),
         "valor": _numero(form.get("valor"), "Valor", erros),
-        "garantia_meses": _numero(form.get("garantia_meses"), "Garantia", erros, inteiro=True),
+        "garantia_meses": _numero(
+            form.get("garantia_meses"), "Garantia", erros, inteiro=True
+        ),
     }
     if erros:
         raise ValidacaoError(erros)
     return dados
+
+
+def _texto_do_campo(valor):
+    if valor is None:
+        return ""
+    if isinstance(valor, date):
+        return valor.isoformat()
+    if isinstance(valor, float) and valor.is_integer():
+        return str(int(valor))
+    return str(valor)
+
+
+def valores_do_item(item):
+    return {campo: _texto_do_campo(getattr(item, campo)) for campo in CAMPOS_ITEM}
 
 
 def quantidade_do_formulario(form):

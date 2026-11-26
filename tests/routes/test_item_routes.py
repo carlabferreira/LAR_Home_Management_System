@@ -1,4 +1,5 @@
 import re
+from datetime import date
 
 from app import repositories
 from app.models import Item, Room
@@ -112,8 +113,14 @@ def test_criar_item_grava_os_campos_do_formulario(app, client):
     with app.app_context():
         room_id = repositories.add_room(Room(nome="Sala")).id
     criar(
-        client, nome="TV", tipo="duravel", quantidade="1", room_id=str(room_id),
-        data_compra="2026-01-15", valor="2500,90", garantia_meses="12",
+        client,
+        nome="TV",
+        tipo="duravel",
+        quantidade="1",
+        room_id=str(room_id),
+        data_compra="2026-01-15",
+        valor="2500,90",
+        garantia_meses="12",
     )
     with app.app_context():
         item = repositories.list_items()[0]
@@ -138,10 +145,17 @@ def test_criar_item_invalido_mostra_todos_os_erros(client):
 def test_criar_item_invalido_mantem_o_que_foi_digitado(app, client):
     with app.app_context():
         room_id = repositories.add_room(Room(nome="Despensa")).id
-    pagina = html(criar(
-        client, nome="Leite", tipo="duravel", quantidade="-1",
-        categoria="Laticínios", room_id=str(room_id), data_compra="2026-01-10",
-    ))
+    pagina = html(
+        criar(
+            client,
+            nome="Leite",
+            tipo="duravel",
+            quantidade="-1",
+            categoria="Laticínios",
+            room_id=str(room_id),
+            data_compra="2026-01-10",
+        )
+    )
     assert 'value="Leite"' in pagina
     assert 'value="-1"' in pagina
     assert 'value="Laticínios"' in pagina
@@ -153,3 +167,61 @@ def test_criar_item_invalido_mantem_o_que_foi_digitado(app, client):
 def test_erro_do_formulario_nao_reaparece_na_proxima_pagina(client):
     criar(client, nome="")
     assert "O nome é obrigatório." not in html(client.get("/itens"))
+
+
+def test_formulario_editar_vem_preenchido_com_o_item(app, client):
+    with app.app_context():
+        room_id = repositories.add_room(Room(nome="Despensa")).id
+    item_id = cadastrar(
+        app,
+        nome="Leite",
+        quantidade=2.0,
+        unidade="L",
+        estoque_minimo=1.5,
+        room_id=room_id,
+        validade=date(2027, 1, 10),
+    )
+    pagina = html(client.get(f"/itens/{item_id}/editar"))
+    assert f'action="/itens/{item_id}/editar"' in pagina
+    assert 'value="Leite"' in pagina
+    assert 'value="2"' in pagina
+    assert 'value="1.5"' in pagina
+    assert 'value="2027-01-10"' in pagina
+    assert re.search(rf'value="{room_id}"\s+selected', pagina)
+    assert re.search(r'value="consumivel"\s+checked', pagina)
+
+
+def test_formulario_editar_mostra_valor_grande_sem_notacao_cientifica(app, client):
+    item_id = cadastrar(app, tipo="duravel", valor=1234567.0)
+    assert 'value="1234567"' in html(client.get(f"/itens/{item_id}/editar"))
+
+
+def editar(client, item_id, **campos):
+    return client.post(
+        f"/itens/{item_id}/editar", data=form_item(**campos), follow_redirects=True
+    )
+
+
+def test_editar_item_grava_e_volta_para_a_listagem_com_mensagem(app, client):
+    item_id = cadastrar(app)
+    resposta = editar(client, item_id, nome="Arroz integral", quantidade="5")
+    assert resposta.request.path == "/itens"
+    assert "Item Arroz integral atualizado." in html(resposta)
+    with app.app_context():
+        item = repositories.get_item(item_id)
+        assert (item.nome, item.quantidade) == ("Arroz integral", 5.0)
+
+
+def test_editar_item_invalido_mantem_o_digitado_e_nao_altera(app, client):
+    item_id = cadastrar(app)
+    resposta = editar(client, item_id, nome="", quantidade="9")
+    pagina = html(resposta)
+    assert resposta.status_code == 400
+    assert "O nome é obrigatório." in pagina
+    assert 'value="9"' in pagina
+    with app.app_context():
+        assert repositories.get_item(item_id).quantidade == 2.0
+
+
+def test_editar_item_inexistente_responde_404(client):
+    assert client.post("/itens/999/editar", data=form_item()).status_code == 404

@@ -1,6 +1,7 @@
 """Rotas de itens. Só traduzem HTTP para os serviços; sem regra de negócio."""
 from flask import (
     Blueprint,
+    abort,
     current_app,
     flash,
     redirect,
@@ -9,9 +10,9 @@ from flask import (
     url_for,
 )
 
-from ..domain.errors import DominioError
+from ..domain.errors import DominioError, NaoEncontradoError
 from ..services import item_service, room_service
-from .forms import dados_item_do_formulario, mensagens_de_erro
+from .forms import dados_item_do_formulario, mensagens_de_erro, valores_do_item
 
 item_bp = Blueprint("items", __name__, url_prefix="/itens")
 
@@ -32,6 +33,13 @@ def _formulario(titulo, acao, valores, status=200):
         comodos=room_service.listar_comodos(),
     )
     return pagina, status
+
+
+def _obter_ou_404(item_id):
+    try:
+        return item_service.obter_item(item_id)
+    except NaoEncontradoError:
+        abort(404)
 
 
 @item_bp.get("")
@@ -56,4 +64,24 @@ def criar():
         _avisar_erro(erro)
         return _formulario("Novo item", url_for("items.criar"), request.form, 400)
     flash(f"Item {item.nome} criado.", "sucesso")
+    return redirect(url_for("items.listar"))
+
+
+@item_bp.get("/<int:item_id>/editar")
+def editar(item_id):
+    item = _obter_ou_404(item_id)
+    acao = url_for("items.atualizar", item_id=item_id)
+    return _formulario("Editar item", acao, valores_do_item(item))
+
+
+@item_bp.post("/<int:item_id>/editar")
+def atualizar(item_id):
+    _obter_ou_404(item_id)
+    try:
+        item = item_service.editar_item(item_id, dados_item_do_formulario(request.form))
+    except DominioError as erro:
+        _avisar_erro(erro)
+        acao = url_for("items.atualizar", item_id=item_id)
+        return _formulario("Editar item", acao, request.form, 400)
+    flash(f"Item {item.nome} atualizado.", "sucesso")
     return redirect(url_for("items.listar"))
