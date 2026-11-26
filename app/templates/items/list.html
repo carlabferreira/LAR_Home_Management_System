@@ -1,1 +1,27 @@
-<!-- tabela com filtros -->
+{% extends "base.html" %}
+
+{% block titulo %}Itens{% endblock %}
+
+{% block conteudo %}
+<h1>Itens</h1>
+
+{% if linhas %}
+<table class="tabela">
+  <thead>
+    <tr>
+      <th scope="col">Nome</th>
+      <th scope="col">Tipo</th>
+      <th scope="col">Cômodo</th>
+      <th scope="col">Quantidade</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for linha in linhas %}
+      {% include "components/_item_row.html" %}
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="vazio">Nenhum item cadastrado ainda.</p>
+{% endif %}
+{% endblock %}

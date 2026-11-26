@@ -25,6 +25,10 @@
                {% if request.blueprint == 'rooms' %}class="ativo" aria-current="page"{% endif %}>Cômodos</a>
           </li>
           <li>
+            <a href="{{ url_for('items.listar') }}"
+               {% if request.blueprint == 'items' %}class="ativo" aria-current="page"{% endif %}>Itens</a>
+          </li>
+          <li>
               <a href="{{ url_for('dashboard.index') }}"
                 {% if request.blueprint == 'dashboard' %}
                     class="ativo" aria-current="page"

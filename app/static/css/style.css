@@ -237,6 +237,33 @@ button:hover,
   color: var(--texto-suave);
 }
 
+/* ---- Tabelas (ex.: itens) ---- */
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--superficie);
+  box-shadow: var(--sombra);
+}
+
+.tabela th,
+.tabela td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.tabela thead th {
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--borda);
+}
+
+.tabela tbody tr + tr {
+  border-top: 1px solid var(--borda);
+}
+
 /* ---- Etiquetas de status (filtro classe_status: ok, aviso, perigo) ---- */
 .etiqueta {
   display: inline-block;

@@ -6,6 +6,8 @@ from .config import DevConfig
 from .extensions import db
 from .web.room_routes import room_bp
 from .web.dashboard_routes import dashboard_bp
+from .web.filters import register_filters
+from .web.item_routes import item_bp
 
 def pagina_nao_encontrada(erro):
     return render_template("404.html"), 404
@@ -21,6 +23,8 @@ def create_app(config_object=None):
     app.register_blueprint(room_bp)
     app.register_error_handler(404, pagina_nao_encontrada)
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(item_bp)
+    register_filters(app)
 
     with app.app_context():
         db.create_all()
