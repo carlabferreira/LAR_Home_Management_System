@@ -6,4 +6,15 @@
   <td>{{ item.tipo|rotulo_tipo }}</td>
   <td>{{ item.room.nome if item.room else "—" }}</td>
   <td>{{ item.quantidade|numero }}{% if item.unidade %} {{ item.unidade }}{% endif %}</td>
+  <td class="selos">
+    {% for status in (linha.validade, linha.garantia) if status|rotulo_status %}
+    <span class="etiqueta {{ status|classe_status }}">{{ status|rotulo_status }}</span>
+    {% endfor %}
+    {% if linha.estoque_baixo %}
+    <span class="etiqueta aviso">Estoque baixo</span>
+    {% endif %}
+  </td>
+  <td class="acoes-linha">
+    <a href="{{ url_for('items.editar', item_id=item.id) }}">Editar</a>
+  </td>
 </tr>

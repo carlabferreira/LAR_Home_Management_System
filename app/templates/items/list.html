@@ -3,10 +3,61 @@
 {% block titulo %}Itens{% endblock %}
 
 {% block conteudo %}
+{% set situacoes = [
+    ("vencido", "Vencidos"),
+    ("vence_em_breve", "Vencendo em breve"),
+    ("estoque_baixo", "Estoque baixo"),
+    ("garantia_vencida", "Garantia vencida"),
+    ("garantia_vencendo", "Garantia vencendo"),
+] %}
+
 <div class="cabecalho-pagina">
   <h1>Itens</h1>
   <a class="botao" href="{{ url_for('items.novo') }}">Novo item</a>
 </div>
+
+<form class="filtros" method="get" action="{{ url_for('items.listar') }}" role="search">
+  <div class="campo">
+    <label for="busca">Buscar</label>
+    <input id="busca" name="busca" type="search" placeholder="Nome do item"
+           value="{{ filtros.busca or '' }}">
+  </div>
+
+  <div class="campo">
+    <label for="tipo">Tipo</label>
+    <select id="tipo" name="tipo">
+      <option value="">Todos</option>
+      {% for valor in ("consumivel", "duravel") %}
+      <option value="{{ valor }}" {% if filtros.tipo == valor %}selected{% endif %}>{{ valor|rotulo_tipo }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="campo">
+    <label for="room_id">Cômodo</label>
+    <select id="room_id" name="room_id">
+      <option value="">Todos</option>
+      {% for comodo in comodos %}
+      <option value="{{ comodo.id }}" {% if filtros.room_id == comodo.id %}selected{% endif %}>{{ comodo.nome }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="campo">
+    <label for="situacao">Situação</label>
+    <select id="situacao" name="situacao">
+      <option value="">Todas</option>
+      {% for valor, rotulo in situacoes %}
+      <option value="{{ valor }}" {% if filtros.situacao == valor %}selected{% endif %}>{{ rotulo }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="acoes">
+    <button type="submit">Filtrar</button>
+    <a href="{{ url_for('items.listar') }}">Limpar</a>
+  </div>
+</form>
 
 {% if linhas %}
 <table class="tabela">
@@ -16,6 +67,8 @@
       <th scope="col">Tipo</th>
       <th scope="col">Cômodo</th>
       <th scope="col">Quantidade</th>
+      <th scope="col">Situação</th>
+      <th scope="col"><span class="oculto">Ações</span></th>
     </tr>
   </thead>
   <tbody>
@@ -24,6 +77,8 @@
     {% endfor %}
   </tbody>
 </table>
+{% elif filtros.values()|select|list %}
+<p class="vazio">Nenhum item encontrado com esses filtros.</p>
 {% else %}
 <p class="vazio">Nenhum item cadastrado ainda.</p>
 {% endif %}

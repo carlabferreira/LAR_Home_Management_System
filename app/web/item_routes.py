@@ -44,11 +44,23 @@ def _obter_ou_404(item_id):
 
 @item_bp.get("")
 def listar():
+    filtros = {
+        "tipo": request.args.get("tipo") or None,
+        "room_id": request.args.get("room_id", type=int),
+        "busca": request.args.get("busca") or None,
+        "situacao": request.args.get("situacao") or None,
+    }
     linhas = item_service.listar_itens(
+        **filtros,
         dias_validade=current_app.config["DIAS_ALERTA_VALIDADE"],
         dias_garantia=current_app.config["DIAS_ALERTA_GARANTIA"],
     )
-    return render_template("items/list.html", linhas=linhas)
+    return render_template(
+        "items/list.html",
+        linhas=linhas,
+        filtros=filtros,
+        comodos=room_service.listar_comodos(),
+    )
 
 
 @item_bp.get("/novo")

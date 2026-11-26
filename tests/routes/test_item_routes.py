@@ -1,6 +1,8 @@
 import re
 from datetime import date
 
+import pytest
+
 from app import repositories
 from app.models import Item, Room
 
@@ -37,14 +39,14 @@ def test_pagina_de_itens_lista_os_cadastrados(app, client):
 
 def test_pagina_de_itens_mostra_o_tipo_por_extenso(app, client):
     cadastrar(app, tipo="duravel")
-    assert "Durável" in html(client.get("/itens"))
+    assert "<td>Durável</td>" in html(client.get("/itens"))
 
 
 def test_pagina_de_itens_mostra_o_comodo(app, client):
     with app.app_context():
         room_id = repositories.add_room(Room(nome="Despensa")).id
     cadastrar(app, room_id=room_id)
-    assert "Despensa" in html(client.get("/itens"))
+    assert "<td>Despensa</td>" in html(client.get("/itens"))
 
 
 def test_pagina_de_itens_mostra_quantidade_formatada_com_unidade(app, client):
@@ -66,6 +68,55 @@ def test_menu_nao_destaca_itens_em_outra_pagina(client):
 
 def test_pagina_de_itens_tem_botao_para_novo_item(client):
     assert 'href="/itens/novo"' in html(client.get("/itens"))
+
+
+@pytest.mark.parametrize("consulta, mostrado, escondido", [
+    ("tipo=duravel", "Geladeira", "Leite"),
+    ("busca=gela", "Geladeira", "Leite"),
+    ("situacao=vencido", "Leite", "Geladeira"),
+    ("room_id={cozinha}", "Leite", "Geladeira"),
+])
+def test_pagina_de_itens_aplica_os_filtros_da_url(app, client, consulta, mostrado, escondido):
+    with app.app_context():
+        cozinha = repositories.add_room(Room(nome="Cozinha")).id
+    cadastrar(app, nome="Leite", room_id=cozinha, validade=date(2000, 1, 1))
+    cadastrar(app, nome="Geladeira", tipo="duravel")
+    pagina = html(client.get("/itens?" + consulta.format(cozinha=cozinha)))
+    assert mostrado in pagina
+    assert escondido not in pagina
+
+
+def test_pagina_de_itens_mantem_os_filtros_escolhidos(app, client):
+    with app.app_context():
+        cozinha = repositories.add_room(Room(nome="Cozinha")).id
+    pagina = html(client.get(
+        f"/itens?busca=lei&tipo=consumivel&room_id={cozinha}&situacao=estoque_baixo"
+    ))
+    assert 'value="lei"' in pagina
+    assert 'value="consumivel" selected' in pagina
+    assert f'value="{cozinha}" selected' in pagina
+    assert 'value="estoque_baixo" selected' in pagina
+
+
+def test_pagina_de_itens_sem_resultado_no_filtro_mostra_aviso(app, client):
+    cadastrar(app)
+    pagina = html(client.get("/itens?busca=inexistente"))
+    assert "Nenhum item encontrado com esses filtros." in pagina
+    assert "Nenhum item cadastrado" not in pagina
+
+
+def test_pagina_de_itens_mostra_selos_de_situacao(app, client):
+    cadastrar(app, nome="Leite", validade=date(2000, 1, 1), quantidade=0.0, estoque_minimo=1.0)
+    cadastrar(app, nome="TV", tipo="duravel", data_compra=date.today(), garantia_meses=12)
+    pagina = html(client.get("/itens"))
+    assert '<span class="etiqueta perigo">Vencido</span>' in pagina
+    assert '<span class="etiqueta aviso">Estoque baixo</span>' in pagina
+    assert '<span class="etiqueta ok">Em garantia</span>' in pagina
+
+
+def test_pagina_de_itens_tem_link_para_editar_cada_item(app, client):
+    item_id = cadastrar(app)
+    assert f'href="/itens/{item_id}/editar"' in html(client.get("/itens"))
 
 
 # ---- GET /itens/novo ----
