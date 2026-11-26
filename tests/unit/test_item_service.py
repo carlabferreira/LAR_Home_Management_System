@@ -126,3 +126,86 @@ def test_resumo_contabiliza_itens_por_tipo(gerar_resumo):
     assert resumo["total_itens"] == 2
     assert resumo["total_consumiveis"] == 1
     assert resumo["total_duraveis"] == 1
+
+def test_resumo_identifica_garantia_vencida(gerar_resumo):
+    item = Item(
+        nome="Geladeira",
+        tipo="duravel",
+        data_compra=date(2025, 10, 25),
+        garantia_meses=12
+    )
+
+    assert gerar_resumo([item])["garantias_vencidas"] == [item]
+
+
+def test_resumo_identifica_garantia_vencendo(gerar_resumo):
+    item = Item(
+        nome="Televisao",
+        tipo="duravel",
+        data_compra=date(2025, 12, 10),
+        garantia_meses=12
+    )
+
+    assert gerar_resumo([item])["garantias_vencendo"] == [item]
+
+
+def test_resumo_ignora_garantia_distante(gerar_resumo):
+    item = Item(
+        nome="Notebook",
+        tipo="duravel",
+        data_compra=date(2026, 10, 25),
+        garantia_meses=12
+    )
+
+    resumo = gerar_resumo([item])
+
+    assert resumo["garantias_vencendo"] == []
+    assert resumo["garantias_vencidas"] == []
+
+
+def test_resumo_ignora_item_sem_garantia(gerar_resumo):
+    item = Item(
+        nome="Mesa",
+        tipo="duravel"
+    )
+
+    resumo = gerar_resumo([item])
+
+    assert resumo["garantias_vencendo"] == []
+    assert resumo["garantias_vencidas"] == []
+
+
+def test_resumo_garantia_respeita_prazo_configurado(
+    gerar_resumo
+):
+    item = Item(
+        nome="Ventilador",
+        tipo="duravel",
+        data_compra=date(2025, 12, 10),
+        garantia_meses=12
+    )
+
+    resumo = gerar_resumo([item], dias_garantia=7)
+
+    assert resumo["garantias_vencendo"] == []
+
+
+def test_resumo_garantia_considera_fim_do_mes(monkeypatch):
+    item = Item(
+        nome="Celular",
+        tipo="duravel",
+        data_compra=date(2026, 1, 31),
+        garantia_meses=1
+    )
+
+    monkeypatch.setattr(
+        repositories, "list_items", lambda: [item]
+    )
+
+    resumo = resumo_alertas(
+        dias_validade=7,
+        dias_garantia=0,
+        hoje=date(2026, 2, 28)
+    )
+
+    assert resumo["garantias_vencendo"] == [item]

@@ -13,6 +13,17 @@ from calendar import monthrange
 
 from app import repositories
 
+def _fim_garantia(data_compra, meses):
+    ano, mes = divmod(
+        data_compra.year * 12 + data_compra.month - 1 + meses,
+        12
+    )
+
+    mes += 1
+    dia = min(data_compra.day, monthrange(ano, mes)[1])
+
+    return date(ano, mes, dia)
+
 
 def resumo_alertas(dias_validade, dias_garantia, hoje=None):
     hoje = hoje if hoje is not None else date.today()
@@ -51,5 +62,25 @@ def resumo_alertas(dias_validade, dias_garantia, hoje=None):
 
         elif item.tipo == "duravel":
             resumo["total_duraveis"] += 1
+
+            if (
+                item.data_compra is not None
+                and item.garantia_meses is not None
+                and item.garantia_meses > 0
+            ):
+                fim = _fim_garantia(
+                    item.data_compra,
+                    item.garantia_meses
+                )
+
+                limite_garantia = hoje + timedelta(
+                    days=dias_garantia
+                )
+
+                if fim < hoje:
+                    resumo["garantias_vencidas"].append(item)
+
+                elif fim <= limite_garantia:
+                    resumo["garantias_vencendo"].append(item)
 
     return resumo
