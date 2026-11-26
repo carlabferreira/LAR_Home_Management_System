@@ -70,13 +70,18 @@ def test_pagina_de_itens_tem_botao_para_novo_item(client):
     assert 'href="/itens/novo"' in html(client.get("/itens"))
 
 
-@pytest.mark.parametrize("consulta, mostrado, escondido", [
-    ("tipo=duravel", "Geladeira", "Leite"),
-    ("busca=gela", "Geladeira", "Leite"),
-    ("situacao=vencido", "Leite", "Geladeira"),
-    ("room_id={cozinha}", "Leite", "Geladeira"),
-])
-def test_pagina_de_itens_aplica_os_filtros_da_url(app, client, consulta, mostrado, escondido):
+@pytest.mark.parametrize(
+    "consulta, mostrado, escondido",
+    [
+        ("tipo=duravel", "Geladeira", "Leite"),
+        ("busca=gela", "Geladeira", "Leite"),
+        ("situacao=vencido", "Leite", "Geladeira"),
+        ("room_id={cozinha}", "Leite", "Geladeira"),
+    ],
+)
+def test_pagina_de_itens_aplica_os_filtros_da_url(
+    app, client, consulta, mostrado, escondido
+):
     with app.app_context():
         cozinha = repositories.add_room(Room(nome="Cozinha")).id
     cadastrar(app, nome="Leite", room_id=cozinha, validade=date(2000, 1, 1))
@@ -89,9 +94,11 @@ def test_pagina_de_itens_aplica_os_filtros_da_url(app, client, consulta, mostrad
 def test_pagina_de_itens_mantem_os_filtros_escolhidos(app, client):
     with app.app_context():
         cozinha = repositories.add_room(Room(nome="Cozinha")).id
-    pagina = html(client.get(
-        f"/itens?busca=lei&tipo=consumivel&room_id={cozinha}&situacao=estoque_baixo"
-    ))
+    pagina = html(
+        client.get(
+            f"/itens?busca=lei&tipo=consumivel&room_id={cozinha}&situacao=estoque_baixo"
+        )
+    )
     assert 'value="lei"' in pagina
     assert 'value="consumivel" selected' in pagina
     assert f'value="{cozinha}" selected' in pagina
@@ -106,8 +113,12 @@ def test_pagina_de_itens_sem_resultado_no_filtro_mostra_aviso(app, client):
 
 
 def test_pagina_de_itens_mostra_selos_de_situacao(app, client):
-    cadastrar(app, nome="Leite", validade=date(2000, 1, 1), quantidade=0.0, estoque_minimo=1.0)
-    cadastrar(app, nome="TV", tipo="duravel", data_compra=date.today(), garantia_meses=12)
+    cadastrar(
+        app, nome="Leite", validade=date(2000, 1, 1), quantidade=0.0, estoque_minimo=1.0
+    )
+    cadastrar(
+        app, nome="TV", tipo="duravel", data_compra=date.today(), garantia_meses=12
+    )
     pagina = html(client.get("/itens"))
     assert '<span class="etiqueta perigo">Vencido</span>' in pagina
     assert '<span class="etiqueta aviso">Estoque baixo</span>' in pagina
@@ -276,3 +287,79 @@ def test_editar_item_invalido_mantem_o_digitado_e_nao_altera(app, client):
 
 def test_editar_item_inexistente_responde_404(client):
     assert client.post("/itens/999/editar", data=form_item()).status_code == 404
+
+
+def acao(client, item_id, nome_acao, **dados):
+    return client.post(
+        f"/itens/{item_id}/{nome_acao}", data=dados, follow_redirects=True
+    )
+
+
+def quantidade_salva(app, item_id):
+    with app.app_context():
+        return repositories.get_item(item_id).quantidade
+
+
+def test_consumir_grava_e_volta_para_a_listagem_com_mensagem(app, client):
+    item_id = cadastrar(app, quantidade=5.0, unidade="kg")
+    resposta = acao(client, item_id, "consumir", quantidade="2")
+    assert resposta.request.path == "/itens"
+    assert "Consumo de Arroz registrado. Restam 3 kg." in html(resposta)
+    assert quantidade_salva(app, item_id) == 3.0
+
+
+def test_repor_grava_e_volta_para_a_listagem_com_mensagem(app, client):
+    item_id = cadastrar(app, quantidade=1.0)
+    resposta = acao(client, item_id, "repor", quantidade="2,5")
+    assert resposta.request.path == "/itens"
+    assert "Reposição de Arroz registrada. Agora há 3.5." in html(resposta)
+    assert quantidade_salva(app, item_id) == 3.5
+
+
+@pytest.mark.parametrize(
+    "quantidade, mensagem",
+    [
+        ("5", "Estoque insuficiente"),
+        ("abc", "Quantidade: número inválido."),
+        ("", "Informe a quantidade."),
+    ],
+)
+def test_consumir_com_quantidade_invalida_mostra_erro_e_nao_altera(
+    app, client, quantidade, mensagem
+):
+    item_id = cadastrar(app, quantidade=2.0)
+    assert mensagem in html(acao(client, item_id, "consumir", quantidade=quantidade))
+    assert quantidade_salva(app, item_id) == 2.0
+
+
+def test_consumir_item_duravel_mostra_erro(app, client):
+    item_id = cadastrar(app, nome="Geladeira", tipo="duravel", quantidade=1.0)
+    pagina = html(acao(client, item_id, "consumir", quantidade="1"))
+    assert "Geladeira é durável" in pagina
+    assert quantidade_salva(app, item_id) == 1.0
+
+
+def test_remover_apaga_e_mostra_mensagem(app, client):
+    item_id = cadastrar(app)
+    assert "Item Arroz removido." in html(acao(client, item_id, "remover"))
+    with app.app_context():
+        assert repositories.get_item(item_id) is None
+
+
+@pytest.mark.parametrize("nome_acao", ["consumir", "repor", "remover"])
+def test_acao_em_item_inexistente_mostra_erro(client, nome_acao):
+    assert "Item não encontrado." in html(acao(client, 999, nome_acao, quantidade="1"))
+
+
+def test_botoes_de_estoque_aparecem_so_para_consumiveis(app, client):
+    consumivel_id = cadastrar(app)
+    duravel_id = cadastrar(app, nome="Geladeira", tipo="duravel")
+    pagina = html(client.get("/itens"))
+    assert f'action="/itens/{consumivel_id}/consumir"' in pagina
+    assert f'formaction="/itens/{consumivel_id}/repor"' in pagina
+    assert f"/itens/{duravel_id}/consumir" not in pagina
+
+
+def test_botao_remover_pede_confirmacao_com_o_nome_do_item(app, client):
+    cadastrar(app, nome="Geladeira", tipo="duravel")
+    assert 'data-confirmar="Remover o item Geladeira?"' in html(client.get("/itens"))

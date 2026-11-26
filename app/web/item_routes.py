@@ -12,7 +12,13 @@ from flask import (
 
 from ..domain.errors import DominioError, NaoEncontradoError
 from ..services import item_service, room_service
-from .forms import dados_item_do_formulario, mensagens_de_erro, valores_do_item
+from .filters import numero
+from .forms import (
+    dados_item_do_formulario,
+    mensagens_de_erro,
+    quantidade_do_formulario,
+    valores_do_item,
+)
 
 item_bp = Blueprint("items", __name__, url_prefix="/itens")
 
@@ -33,6 +39,11 @@ def _formulario(titulo, acao, valores, status=200):
         comodos=room_service.listar_comodos(),
     )
     return pagina, status
+
+
+def _estoque(item):
+    unidade = f" {item.unidade}" if item.unidade else ""
+    return f"{numero(item.quantidade)}{unidade}"
 
 
 def _obter_ou_404(item_id):
@@ -96,4 +107,39 @@ def atualizar(item_id):
         acao = url_for("items.atualizar", item_id=item_id)
         return _formulario("Editar item", acao, request.form, 400)
     flash(f"Item {item.nome} atualizado.", "sucesso")
+    return redirect(url_for("items.listar"))
+
+
+@item_bp.post("/<int:item_id>/consumir")
+def consumir(item_id):
+    try:
+        quantidade = quantidade_do_formulario(request.form)
+        item = item_service.consumir_item(item_id, quantidade)
+    except DominioError as erro:
+        _avisar_erro(erro)
+    else:
+        flash(f"Consumo de {item.nome} registrado. Restam {_estoque(item)}.", "sucesso")
+    return redirect(url_for("items.listar"))
+
+
+@item_bp.post("/<int:item_id>/repor")
+def repor(item_id):
+    try:
+        quantidade = quantidade_do_formulario(request.form)
+        item = item_service.repor_item(item_id, quantidade)
+    except DominioError as erro:
+        _avisar_erro(erro)
+    else:
+        flash(f"Reposição de {item.nome} registrada. Agora há {_estoque(item)}.", "sucesso")
+    return redirect(url_for("items.listar"))
+
+
+@item_bp.post("/<int:item_id>/remover")
+def remover(item_id):
+    try:
+        item = item_service.remover_item(item_id)
+    except DominioError as erro:
+        _avisar_erro(erro)
+    else:
+        flash(f"Item {item.nome} removido.", "sucesso")
     return redirect(url_for("items.listar"))

@@ -338,6 +338,26 @@ legend {
   white-space: nowrap;
 }
 
+.acoes-linha form {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0 0 0 0.5rem;
+}
+
+.acoes-linha a {
+  margin-left: 0.5rem;
+}
+
+.acoes-linha input {
+  width: 4.5rem;
+  padding: 0.35rem 0.5rem;
+}
+
+.acoes-linha button {
+  padding: 0.35rem 0.75rem;
+}
+
 /* ---- Filtros da listagem ---- */
 .filtros {
   display: grid;

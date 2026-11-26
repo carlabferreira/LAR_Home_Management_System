@@ -15,6 +15,18 @@
     {% endif %}
   </td>
   <td class="acoes-linha">
+    {% if item.tipo == "consumivel" %}
+    <form method="post" action="{{ url_for('items.consumir', item_id=item.id) }}">
+      <input name="quantidade" type="number" step="any" min="0" value="1" required
+             aria-label="Quantidade de {{ item.nome }}">
+      <button type="submit">Consumir</button>
+      <button type="submit" formaction="{{ url_for('items.repor', item_id=item.id) }}">Repor</button>
+    </form>
+    {% endif %}
     <a href="{{ url_for('items.editar', item_id=item.id) }}">Editar</a>
+    <form method="post" action="{{ url_for('items.remover', item_id=item.id) }}"
+          data-confirmar="Remover o item {{ item.nome }}?">
+      <button type="submit" class="botao-perigo">Remover</button>
+    </form>
   </td>
 </tr>
