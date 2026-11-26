@@ -63,6 +63,12 @@ def editar_item(item_id, dados):
     return item
 
 
+def remover_item(item_id):
+    item = obter_item(item_id)
+    repositories.delete_item(item)
+    return item
+
+
 def _fim_garantia(data_compra, meses):
     ano, mes = divmod(data_compra.year * 12 + data_compra.month - 1 + meses, 12)
 

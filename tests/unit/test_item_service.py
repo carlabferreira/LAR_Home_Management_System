@@ -338,3 +338,19 @@ def test_editar_item_invalido_lanca_erro_e_mantem_os_dados(contexto):
 def test_editar_item_inexistente_lanca_erro(contexto):
     with pytest.raises(NaoEncontradoError, match="Item não encontrado."):
         item_service.editar_item(999, consumivel())
+
+
+def test_remover_item_apaga_o_item(contexto):
+    item = item_service.criar_item(consumivel())
+    item_service.remover_item(item.id)
+    assert repositories.get_item(item.id) is None
+
+
+def test_remover_item_devolve_o_item_removido(contexto):
+    item = item_service.criar_item(consumivel())
+    assert item_service.remover_item(item.id).nome == "Arroz"
+
+
+def test_remover_item_inexistente_lanca_erro(contexto):
+    with pytest.raises(NaoEncontradoError, match="Item não encontrado."):
+        item_service.remover_item(999)
