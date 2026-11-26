@@ -13,7 +13,7 @@ from decimal import Decimal
 
 from app import repositories
 from app.domain import rules
-from app.domain.errors import ValidacaoError
+from app.domain.errors import NaoEncontradoError, ValidacaoError
 from app.models import CAMPOS_ITEM, Item
 
 CAMPOS_SO_CONSUMIVEL = ("unidade", "estoque_minimo", "validade")
@@ -46,6 +46,13 @@ def _preparar_dados(dados):
 
 def criar_item(dados):
     return repositories.add_item(Item(**_preparar_dados(dados)))
+
+
+def obter_item(item_id):
+    item = repositories.get_item(item_id)
+    if item is None:
+        raise NaoEncontradoError("Item não encontrado.")
+    return item
 
 
 def _fim_garantia(data_compra, meses):
