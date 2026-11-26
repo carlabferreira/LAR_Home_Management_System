@@ -14,7 +14,7 @@
 <body>
   <header class="topo">
     <div class="topo-conteudo">
-      <a class="marca" href="{{ url_for('rooms.listar') }}">
+      <a class="marca" href="{{ url_for('dashboard.index') }}">
         <img src="{{ url_for('static', filename='img/logo_marca.png') }}"
              alt="LAR · Home Management System" width="56" height="56">
       </a>
@@ -23,6 +23,14 @@
           <li>
             <a href="{{ url_for('rooms.listar') }}"
                {% if request.blueprint == 'rooms' %}class="ativo" aria-current="page"{% endif %}>Cômodos</a>
+          </li>
+          <li>
+              <a href="{{ url_for('dashboard.index') }}"
+                {% if request.blueprint == 'dashboard' %}
+                    class="ativo" aria-current="page"
+                {% endif %}>
+                  Painel
+              </a>
           </li>
         </ul>
       </nav>

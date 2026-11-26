@@ -302,3 +302,49 @@ button:hover,
     font-size: 1.4rem;
   }
 }
+
+.dashboard-totais,
+.dashboard-alertas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+}
+
+.dashboard-card {
+    background: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-card h2,
+.dashboard-card h3 {
+    font-size: 16px;
+    margin-bottom: 12px;
+}
+
+.dashboard-card strong {
+    font-size: 28px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.dashboard-card li {
+    margin-bottom: 6px;
+}
+
+#vencidos,
+#garantias_vencidas {
+    border-left: 4px solid #c0392b;
+}
+
+#vencendo,
+#garantias_vencendo {
+    border-left: 4px solid #e67e22;
+}
+
+#estoque_baixo {
+    border-left: 4px solid #d4ac0d;
+}

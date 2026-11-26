@@ -152,3 +152,10 @@ def test_painel_respeita_configuracao_de_garantia(
     resposta = client.get("/")
 
     assert "Computador" not in resposta.get_data(as_text=True)
+
+def test_painel_possui_link_no_menu(client):
+    resposta = client.get("/")
+    html = resposta.get_data(as_text=True)
+
+    assert 'href="/"' in html
+    assert 'aria-current="page"' in html
