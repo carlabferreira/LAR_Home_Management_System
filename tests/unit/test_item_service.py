@@ -2,10 +2,11 @@ from datetime import date, timedelta
 
 import pytest
 
-from app.models import Item
 from app import repositories
+from app.domain.errors import ValidacaoError
+from app.models import Item, Room
+from app.services import item_service
 from app.services.item_service import resumo_alertas
-
 
 HOJE = date(2026, 11, 25)
 
@@ -250,3 +251,74 @@ def test_resumo_ignora_duravel_sem_valor(gerar_resumo):
     )
 
     assert gerar_resumo([item])["valor_total_duraveis"] == 0
+
+
+# ---- criar_item ----
+def consumivel(**extras):
+    dados = {"nome": "Arroz", "tipo": "consumivel", "quantidade": 2.0}
+    dados.update(extras)
+    return dados
+
+
+def duravel(**extras):
+    dados = {"nome": "Geladeira", "tipo": "duravel", "quantidade": 1.0}
+    dados.update(extras)
+    return dados
+
+
+def test_criar_item_salva_e_devolve_com_id(contexto):
+    item = item_service.criar_item(consumivel())
+    assert item.id is not None
+    assert repositories.get_item(item.id).nome == "Arroz"
+
+
+def test_criar_item_grava_os_campos_informados(contexto):
+    comodo = repositories.add_room(Room(nome="Cozinha"))
+    item = item_service.criar_item(consumivel(
+        categoria="Grãos", room_id=comodo.id, unidade="kg",
+        estoque_minimo=1.0, validade=date(2027, 1, 10),
+    ))
+    salvo = repositories.get_item(item.id)
+    assert salvo.categoria == "Grãos"
+    assert salvo.room.nome == "Cozinha"
+    assert salvo.unidade == "kg"
+    assert salvo.estoque_minimo == 1.0
+    assert salvo.validade == date(2027, 1, 10)
+
+
+def test_criar_item_sem_comodo_e_aceito(contexto):
+    assert item_service.criar_item(consumivel(room_id=None)).room_id is None
+
+
+def test_criar_item_com_comodo_inexistente_lanca_erro(contexto):
+    with pytest.raises(ValidacaoError, match="cômodo escolhido não existe"):
+        item_service.criar_item(consumivel(room_id=999))
+
+
+def test_criar_item_invalido_lanca_erro_e_nao_grava(contexto):
+    with pytest.raises(ValidacaoError, match="nome é obrigatório"):
+        item_service.criar_item(consumivel(nome=None))
+    assert repositories.list_items() == []
+    
+
+def test_criar_consumivel_descarta_campos_de_duravel(contexto):
+    item = item_service.criar_item(consumivel(
+        data_compra=date(2026, 1, 1), valor=100.0, garantia_meses=12,
+    ))
+    assert (item.data_compra, item.valor, item.garantia_meses) == (None, None, None)
+
+
+def test_criar_duravel_descarta_campos_de_consumivel(contexto):
+    item = item_service.criar_item(duravel(
+        unidade="un", estoque_minimo=1.0, validade=date(2027, 1, 1),
+    ))
+    assert (item.unidade, item.estoque_minimo, item.validade) == (None, None, None)
+
+
+def test_criar_duravel_grava_garantia_e_valor(contexto):
+    item = item_service.criar_item(duravel(
+        data_compra=date(2026, 1, 15), valor=3500.0, garantia_meses=12,
+    ))
+    assert item.data_compra == date(2026, 1, 15)
+    assert item.valor == 3500.0
+    assert item.garantia_meses == 12
