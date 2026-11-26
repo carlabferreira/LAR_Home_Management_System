@@ -69,6 +69,29 @@ def remover_item(item_id):
     return item
 
 
+def _obter_consumivel(item_id):
+    item = obter_item(item_id)
+    if item.tipo != rules.TIPO_CONSUMIVEL:
+        raise ValidacaoError(
+            f"O item {item.nome} é durável e não tem estoque para consumir ou repor."
+        )
+    return item
+
+
+def consumir_item(item_id, quantidade):
+    item = _obter_consumivel(item_id)
+    item.quantidade = rules.consumir(item.quantidade, quantidade)
+    repositories.save()
+    return item
+
+
+def repor_item(item_id, quantidade):
+    item = _obter_consumivel(item_id)
+    item.quantidade = rules.repor(item.quantidade, quantidade)
+    repositories.save()
+    return item
+
+
 def _fim_garantia(data_compra, meses):
     ano, mes = divmod(data_compra.year * 12 + data_compra.month - 1 + meses, 12)
 

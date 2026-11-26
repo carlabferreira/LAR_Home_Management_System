@@ -3,7 +3,11 @@ from datetime import date, timedelta
 import pytest
 
 from app import repositories
-from app.domain.errors import NaoEncontradoError, ValidacaoError
+from app.domain.errors import (
+    EstoqueInsuficienteError,
+    NaoEncontradoError,
+    ValidacaoError,
+)
 from app.models import Item, Room
 from app.services import item_service
 from app.services.item_service import resumo_alertas
@@ -354,3 +358,56 @@ def test_remover_item_devolve_o_item_removido(contexto):
 def test_remover_item_inexistente_lanca_erro(contexto):
     with pytest.raises(NaoEncontradoError, match="Item não encontrado."):
         item_service.remover_item(999)
+
+
+def test_consumir_item_diminui_a_quantidade_e_grava(contexto):
+    item = item_service.criar_item(consumivel(quantidade=5.0))
+    item_service.consumir_item(item.id, 2)
+    assert repositories.get_item(item.id).quantidade == 3.0
+
+
+def test_consumir_item_devolve_o_item_atualizado(contexto):
+    item = item_service.criar_item(consumivel(quantidade=5.0))
+    assert item_service.consumir_item(item.id, 0.5).quantidade == 4.5
+
+
+def test_consumir_mais_que_o_estoque_lanca_erro_e_mantem_quantidade(contexto):
+    item = item_service.criar_item(consumivel(quantidade=2.0))
+    with pytest.raises(EstoqueInsuficienteError):
+        item_service.consumir_item(item.id, 3)
+    assert repositories.get_item(item.id).quantidade == 2.0
+
+
+def test_consumir_item_duravel_lanca_erro_e_mantem_quantidade(contexto):
+    item = item_service.criar_item(duravel(quantidade=1.0))
+    with pytest.raises(ValidacaoError, match="Geladeira é durável"):
+        item_service.consumir_item(item.id, 1)
+    assert repositories.get_item(item.id).quantidade == 1.0
+
+
+def test_consumir_item_inexistente_lanca_erro(contexto):
+    with pytest.raises(NaoEncontradoError):
+        item_service.consumir_item(999, 1)
+
+
+def test_repor_item_aumenta_a_quantidade_e_grava(contexto):
+    item = item_service.criar_item(consumivel(quantidade=2.0))
+    item_service.repor_item(item.id, 3)
+    assert repositories.get_item(item.id).quantidade == 5.0
+
+
+def test_repor_item_devolve_o_item_atualizado(contexto):
+    item = item_service.criar_item(consumivel(quantidade=0.0))
+    assert item_service.repor_item(item.id, 1.5).quantidade == 1.5
+
+
+def test_repor_item_duravel_lanca_erro_e_mantem_quantidade(contexto):
+    item = item_service.criar_item(duravel(quantidade=1.0))
+    with pytest.raises(ValidacaoError, match="Geladeira é durável"):
+        item_service.repor_item(item.id, 1)
+    assert repositories.get_item(item.id).quantidade == 1.0
+
+
+def test_repor_item_inexistente_lanca_erro(contexto):
+    with pytest.raises(NaoEncontradoError):
+        item_service.repor_item(999, 1)
