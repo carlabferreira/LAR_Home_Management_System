@@ -206,6 +206,71 @@ button:hover,
   flex: 1 1 14rem;
 }
 
+.cabecalho-pagina {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.cabecalho-pagina h1 {
+  margin: 0;
+}
+
+/* ---- Formulário de item ---- */
+.formulario {
+  display: grid;
+  gap: 1rem;
+  max-width: 40rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+legend {
+  font-weight: 600;
+}
+
+.opcao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-right: 1.25rem;
+  font-weight: 400;
+}
+
+.grupo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--superficie);
+}
+
+.grupo legend {
+  padding: 0 0.25rem;
+  color: var(--texto-suave);
+}
+
+.acoes {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 /* ---- Listas em cartões (ex.: cômodos) ---- */
 .lista {
   margin: 0;
@@ -235,6 +300,81 @@ button:hover,
 
 .vazio {
   color: var(--texto-suave);
+}
+
+/* ---- Tabelas (ex.: itens) ---- */
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--superficie);
+  box-shadow: var(--sombra);
+}
+
+.tabela th,
+.tabela td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.tabela thead th {
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--borda);
+}
+
+.tabela tbody tr + tr {
+  border-top: 1px solid var(--borda);
+}
+
+.tabela .selos .etiqueta {
+  margin: 0.1rem 0.25rem 0.1rem 0;
+}
+
+.tabela .acoes-linha {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.acoes-linha form {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0 0 0 0.5rem;
+}
+
+.acoes-linha a {
+  margin-left: 0.5rem;
+}
+
+.acoes-linha input {
+  width: 4.5rem;
+  padding: 0.35rem 0.5rem;
+}
+
+.acoes-linha button {
+  padding: 0.35rem 0.75rem;
+}
+
+/* ---- Filtros da listagem ---- */
+.filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  align-items: end;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Texto só para leitores de tela. */
+.oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 /* ---- Etiquetas de status (filtro classe_status: ok, aviso, perigo) ---- */

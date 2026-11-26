@@ -1,2 +1,32 @@
-<!-- pedaços reutilizáveis incluídos com {% include %}, 
-como mensagens de aviso e a linha de um item na tabela. -->
+{# Uma linha da tabela de itens. Recebe `linha`, vinda de item_service.listar_itens.
+   Incluído pelo items/list.html com {% include "components/_item_row.html" %}. #}
+{% set item = linha.item %}
+<tr>
+  <td>{{ item.nome }}</td>
+  <td>{{ item.tipo|rotulo_tipo }}</td>
+  <td>{{ item.room.nome if item.room else "—" }}</td>
+  <td>{{ item.quantidade|numero }}{% if item.unidade %} {{ item.unidade }}{% endif %}</td>
+  <td class="selos">
+    {% for status in (linha.validade, linha.garantia) if status|rotulo_status %}
+    <span class="etiqueta {{ status|classe_status }}">{{ status|rotulo_status }}</span>
+    {% endfor %}
+    {% if linha.estoque_baixo %}
+    <span class="etiqueta aviso">Estoque baixo</span>
+    {% endif %}
+  </td>
+  <td class="acoes-linha">
+    {% if item.tipo == "consumivel" %}
+    <form method="post" action="{{ url_for('items.consumir', item_id=item.id) }}">
+      <input name="quantidade" type="number" step="any" min="0" value="1" required
+             aria-label="Quantidade de {{ item.nome }}">
+      <button type="submit">Consumir</button>
+      <button type="submit" formaction="{{ url_for('items.repor', item_id=item.id) }}">Repor</button>
+    </form>
+    {% endif %}
+    <a href="{{ url_for('items.editar', item_id=item.id) }}">Editar</a>
+    <form method="post" action="{{ url_for('items.remover', item_id=item.id) }}"
+          data-confirmar="Remover o item {{ item.nome }}?">
+      <button type="submit" class="botao-perigo">Remover</button>
+    </form>
+  </td>
+</tr>

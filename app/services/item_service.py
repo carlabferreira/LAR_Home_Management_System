@@ -7,17 +7,133 @@
 # listar_itens(user_id, filtros, hoje): devolve os itens já com os status calculados
 # registrar_manutencao
 
+from calendar import monthrange
 from datetime import date, timedelta
 from decimal import Decimal
-from calendar import monthrange
 
 from app import repositories
+from app.domain import rules
+from app.domain.errors import NaoEncontradoError, ValidacaoError
+from app.models import CAMPOS_ITEM, Item
+
+CAMPOS_SO_CONSUMIVEL = ("unidade", "estoque_minimo", "validade")
+CAMPOS_SO_DURAVEL = ("data_compra", "valor", "garantia_meses")
+
+
+def _preparar_dados(dados):
+    erros = []
+    try:
+        rules.validar_item(dados)
+    except ValidacaoError as erro:
+        erros.extend(erro.erros)
+
+    room_id = dados.get("room_id")
+    if room_id is not None and repositories.get_room(room_id) is None:
+        erros.append("O cômodo escolhido não existe.")
+
+    if erros:
+        raise ValidacaoError(erros)
+
+    descartar = (
+        CAMPOS_SO_DURAVEL
+        if dados["tipo"] == rules.TIPO_CONSUMIVEL
+        else CAMPOS_SO_CONSUMIVEL
+    )
+    return {
+        campo: None if campo in descartar else dados.get(campo) for campo in CAMPOS_ITEM
+    }
+
+
+def criar_item(dados):
+    return repositories.add_item(Item(**_preparar_dados(dados)))
+
+
+def obter_item(item_id):
+    item = repositories.get_item(item_id)
+    if item is None:
+        raise NaoEncontradoError("Item não encontrado.")
+    return item
+
+
+def editar_item(item_id, dados):
+    item = obter_item(item_id)
+    for campo, valor in _preparar_dados(dados).items():
+        setattr(item, campo, valor)
+    repositories.save()
+    return item
+
+
+def remover_item(item_id):
+    item = obter_item(item_id)
+    repositories.delete_item(item)
+    return item
+
+
+def _obter_consumivel(item_id):
+    item = obter_item(item_id)
+    if item.tipo != rules.TIPO_CONSUMIVEL:
+        raise ValidacaoError(
+            f"O item {item.nome} é durável e não tem estoque para consumir ou repor."
+        )
+    return item
+
+
+def consumir_item(item_id, quantidade):
+    item = _obter_consumivel(item_id)
+    item.quantidade = rules.consumir(item.quantidade, quantidade)
+    repositories.save()
+    return item
+
+
+def repor_item(item_id, quantidade):
+    item = _obter_consumivel(item_id)
+    item.quantidade = rules.repor(item.quantidade, quantidade)
+    repositories.save()
+    return item
+
+
+SITUACOES = {
+    "vencido": lambda linha: linha["validade"] == "vencido",
+    "vence_em_breve": lambda linha: linha["validade"] == "vence_em_breve",
+    "garantia_vencida": lambda linha: linha["garantia"] == "vencida",
+    "garantia_vencendo": lambda linha: linha["garantia"] == "vencendo",
+    "estoque_baixo": lambda linha: linha["estoque_baixo"],
+}
+
+
+def _com_status(item, hoje, dias_validade, dias_garantia):
+    return {
+        "item": item,
+        "validade": rules.status_validade(item.validade, hoje, dias_validade),
+        "garantia": rules.status_garantia(
+            item.data_compra, item.garantia_meses, hoje, dias_garantia
+        ),
+        "estoque_baixo": rules.abaixo_do_minimo(item.quantidade, item.estoque_minimo),
+    }
+
+
+def listar_itens(
+    tipo=None,
+    room_id=None,
+    busca=None,
+    situacao=None,
+    hoje=None,
+    dias_validade=7,
+    dias_garantia=30,
+):
+    hoje = hoje if hoje is not None else date.today()
+    busca = (busca or "").strip() or None
+    itens = repositories.list_items(tipo=tipo, room_id=room_id, busca=busca)
+    linhas = [_com_status(item, hoje, dias_validade, dias_garantia) for item in itens]
+
+    filtro = SITUACOES.get(situacao)
+    if filtro:
+        linhas = [linha for linha in linhas if filtro(linha)]
+    return linhas
+
 
 def _fim_garantia(data_compra, meses):
-    ano, mes = divmod(
-        data_compra.year * 12 + data_compra.month - 1 + meses,
-        12
-    )
+    ano, mes = divmod(data_compra.year * 12 + data_compra.month - 1 + meses, 12)
 
     mes += 1
     dia = min(data_compra.day, monthrange(ano, mes)[1])
@@ -64,9 +180,8 @@ def resumo_alertas(dias_validade, dias_garantia, hoje=None):
             resumo["total_duraveis"] += 1
 
             if item.valor is not None:
-                resumo["valor_total_duraveis"] += (
-                    Decimal(str(item.valor))
-                    * Decimal(str(item.quantidade))
+                resumo["valor_total_duraveis"] += Decimal(str(item.valor)) * Decimal(
+                    str(item.quantidade)
                 )
 
             if (
@@ -74,14 +189,9 @@ def resumo_alertas(dias_validade, dias_garantia, hoje=None):
                 and item.garantia_meses is not None
                 and item.garantia_meses > 0
             ):
-                fim = _fim_garantia(
-                    item.data_compra,
-                    item.garantia_meses
-                )
+                fim = _fim_garantia(item.data_compra, item.garantia_meses)
 
-                limite_garantia = hoje + timedelta(
-                    days=dias_garantia
-                )
+                limite_garantia = hoje + timedelta(days=dias_garantia)
 
                 if fim < hoje:
                     resumo["garantias_vencidas"].append(item)
