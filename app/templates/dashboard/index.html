@@ -1,1 +1,38 @@
 <!-- cartões de alerta (vencidos, estoque baixo, garantias) e totais. -->
+{% extends "base.html" %}
+
+{% block titulo %}Painel{% endblock %}
+
+{% block conteudo %}
+
+<h1>Painel da casa</h1>
+
+<p>Acompanhe seus itens, estoques e alertas.</p>
+
+<section class="dashboard-totais">
+
+    <article class="dashboard-card">
+        <h2>Total de itens</h2>
+        <strong>{{ resumo.total_itens }}</strong>
+    </article>
+
+    <article class="dashboard-card">
+        <h2>Consumíveis</h2>
+        <strong>{{ resumo.total_consumiveis }}</strong>
+    </article>
+
+    <article class="dashboard-card">
+        <h2>Bens duráveis</h2>
+        <strong>{{ resumo.total_duraveis }}</strong>
+    </article>
+
+    <article class="dashboard-card">
+        <h2>Valor dos bens duráveis</h2>
+        <strong>
+            R$ {{ "%.2f"|format(resumo.valor_total_duraveis) }}
+        </strong>
+    </article>
+
+</section>
+
+{% endblock %}

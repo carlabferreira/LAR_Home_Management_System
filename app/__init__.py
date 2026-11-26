@@ -5,7 +5,7 @@ from . import models  # noqa: F401  (registra as tabelas para o create_all)
 from .config import DevConfig
 from .extensions import db
 from .web.room_routes import room_bp
-
+from .web.dashboard_routes import dashboard_bp
 
 def pagina_nao_encontrada(erro):
     return render_template("404.html"), 404
@@ -20,6 +20,7 @@ def create_app(config_object=None):
     # As rotas e os filtros do Jinja serão registrados aqui pelas tarefas da camada web.
     app.register_blueprint(room_bp)
     app.register_error_handler(404, pagina_nao_encontrada)
+    app.register_blueprint(dashboard_bp)
 
     with app.app_context():
         db.create_all()
