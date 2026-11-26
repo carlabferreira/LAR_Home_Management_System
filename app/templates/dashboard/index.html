@@ -35,4 +35,50 @@
 
 </section>
 
+<h2>Alertas</h2>
+
+{% set grupos = [
+    ("vencidos", "Itens vencidos"),
+    ("vencendo", "Itens próximos do vencimento"),
+    ("estoque_baixo", "Estoque baixo"),
+    ("garantias_vencidas", "Garantias vencidas"),
+    ("garantias_vencendo", "Garantias próximas do vencimento")
+] %}
+
+<section class="dashboard-alertas">
+
+    {% for chave, titulo in grupos %}
+
+        <article class="dashboard-card" id="{{ chave }}">
+
+            <h3>{{ titulo }}</h3>
+
+            <strong>{{ resumo[chave]|length }}</strong>
+
+            {% if resumo[chave] %}
+
+                <ul>
+                    {% for item in resumo[chave] %}
+                        <li>
+                            {{ item.nome }}
+
+                            {% if item.room %}
+                                — {{ item.room.nome }}
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+
+            {% else %}
+
+                <p>Nenhum alerta.</p>
+
+            {% endif %}
+
+        </article>
+
+    {% endfor %}
+
+</section>
+
 {% endblock %}
