@@ -162,6 +162,6 @@ GitHub Actions: https://github.com/carlabferreira/LAR_Home_Management_System/act
 
 Aplicação publicada: https://lar-home-management.onrender.com/
 
-Codecov: [INSERIR LINK]
+Codecov: https://app.codecov.io/gh/carlabferreira/LAR_Home_Management_System
 
 Vídeo demonstrativo: [INSERIR LINK]
