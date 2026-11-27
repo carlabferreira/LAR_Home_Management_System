@@ -164,4 +164,4 @@ Aplicação publicada: https://lar-home-management.onrender.com/
 
 Codecov: https://app.codecov.io/gh/carlabferreira/LAR_Home_Management_System
 
-Vídeo demonstrativo: [INSERIR LINK]
+Vídeo demonstrativo: https://youtu.be/dvckLfjVNhY
